@@ -1,0 +1,209 @@
+%code requires {
+    #include <iostream>
+    #include <string>
+    #include <cstring>
+    #include <vector>
+}
+
+%{
+    #include <iostream>
+    #include <string>
+    #include <cstring>
+    #include <vector>
+
+    #define YYDEBUG 1 
+    
+    extern int yylex();
+    void yyerror(const char *s);
+%}
+
+%union {
+    int val_int;
+    float val_float;
+    std::string* Str;
+}
+
+/* Token-uri și Tipuri */
+%token <Str> ID TYPE
+%token <val_int> INT_CONST
+%token <val_float> FLOAT_CONST
+%token KEYWORD_CLASS KEYWORD_FUNC KEYWORD_IF KEYWORD_MAIN KEYWORD_RETURN KEYWORD_WHILE KEYWORD_FOR KEYWORD_PRINT KEYWORD_DEFINE KEYWORD_THEN
+%token ADD_OP SUB_OP MUL_OP DIV_OP ASSIGN_OP MOD_OP EQ_OP NEQ_OP LT_OP GT_OP GEQ_OP LEQ_OP
+%token OP_AND OP_OR OP_BIT_AND OP_BIT_OR OP_BIT_XOR OP_BIT_LSHIFT OP_BIT_RSHIFT
+%token OPEN_ROUND_PAR CLOSED_ROUND_PAR OPEN_RECTANGLE_PAR CLOSED_RECTANGLE_PAR
+%token OPEN_CURLY_BRACE CLOSED_CURLY_BRACE SEMICOLON DOT COMMA DOLLA_SIGN
+
+%type <Str> type_specifier
+
+%right ASSIGN_OP
+%left OP_OR
+%left OP_AND
+%left OP_BIT_OR
+%left OP_BIT_XOR
+%left OP_BIT_AND
+%left EQ_OP NEQ_OP
+%left LT_OP GT_OP GEQ_OP LEQ_OP
+%left OP_BIT_LSHIFT OP_BIT_RSHIFT
+%left ADD_OP SUB_OP
+%left MUL_OP DIV_OP MOD_OP
+%right UMINUS
+%left DOT OPEN_RECTANGLE_PAR OPEN_ROUND_PAR
+
+%start program
+
+%%
+
+program:
+    global_declarations main_block
+;
+
+global_declarations:
+    | global_declarations class_decl
+    | global_declarations func_decl
+    | global_declarations variable_decl
+;
+
+class_decl:
+    KEYWORD_DEFINE KEYWORD_CLASS ID 
+    { }
+    OPEN_CURLY_BRACE class_body CLOSED_CURLY_BRACE
+    { }
+;
+
+class_body:
+    /* gol */
+    | class_body field_decl
+    | class_body method_decl
+;
+
+field_decl:
+    KEYWORD_DEFINE type_specifier ID SEMICOLON
+    { }
+;
+
+method_decl:
+    KEYWORD_DEFINE KEYWORD_FUNC type_specifier ID OPEN_ROUND_PAR func_params CLOSED_ROUND_PAR
+    { }
+    compound_statement 
+    { }
+;
+
+func_decl:
+    KEYWORD_DEFINE KEYWORD_FUNC type_specifier ID OPEN_ROUND_PAR func_params CLOSED_ROUND_PAR
+    { }
+    compound_statement 
+    { }
+;
+
+func_params:
+    |
+    type_specifier DOLLA_SIGN ID
+    |
+    func_params COMMA type_specifier DOLLA_SIGN ID
+;
+main_block:
+    KEYWORD_MAIN 
+    { }
+    compound_statement
+    { }
+;
+
+
+compound_statement:
+    OPEN_CURLY_BRACE block_item_list CLOSED_CURLY_BRACE
+;
+
+block_item_list:
+    | block_item_list block_item
+;
+
+block_item:
+    variable_decl
+    | statement
+;
+
+
+
+variable_decl:
+    KEYWORD_DEFINE type_specifier ID SEMICOLON
+    { }
+    | type_specifier ID ASSIGN_OP expression SEMICOLON
+    {  }
+;
+
+
+
+statement:
+    assignment SEMICOLON
+    | KEYWORD_IF expression KEYWORD_THEN compound_statement
+    | KEYWORD_WHILE expression compound_statement
+    | KEYWORD_FOR assignment SEMICOLON expression SEMICOLON assignment compound_statement
+    | KEYWORD_RETURN expression SEMICOLON
+    | print_stmt
+    | func_call SEMICOLON
+    | compound_statement
+;
+
+assignment:
+    ID ASSIGN_OP expression
+    { }
+    | ID DOT ID ASSIGN_OP expression
+;
+
+print_stmt:
+    KEYWORD_PRINT OPEN_ROUND_PAR expression CLOSED_ROUND_PAR SEMICOLON
+;
+
+func_call:
+    ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR
+    { }
+    | ID DOT ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR
+;
+
+call_args:
+
+    | expression
+    | call_args COMMA expression
+;
+
+expression:
+    expression ADD_OP expression
+    | expression SUB_OP expression
+    | expression MUL_OP expression
+    | expression DIV_OP expression
+    | expression OP_AND expression
+    | expression OP_OR expression
+    | expression LT_OP expression
+    | expression GT_OP expression
+    | expression LEQ_OP expression
+    | expression GEQ_OP expression
+    | expression NEQ_OP expression
+    | expression EQ_OP expression
+    | OPEN_ROUND_PAR expression CLOSED_ROUND_PAR
+    | ID 
+    | DOLLA_SIGN ID
+    | INT_CONST
+    | FLOAT_CONST
+    | func_call
+    | ID DOT ID
+    | SUB_OP expression %prec UMINUS
+;
+
+type_specifier:
+    TYPE { $$ = $1; }
+    | ID { $$ = $1; }
+;
+
+%%
+
+void yyerror(const char *s) {
+    std::cerr << "Syntax Error: " << s << std::endl;
+}
+
+int main() {
+    // yydebug = 1; 
+    if (yyparse() == 0) {
+        std::cout << "Parsing successful!" << std::endl;
+    }
+    return 0;
+}
