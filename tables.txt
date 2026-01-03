@@ -1,0 +1,26 @@
+=== Scope: Global (Global) ===
+  Name: FileManager | Type: class | Category: class
+  Name: calculateArea | Type: FLOAT | Category: function | Params: (FLOAT length, FLOAT width)
+================================
+
+=== Scope: FileManager (Parent: Global) ===
+  Name: filePath | Type: STR | Category: field
+  Name: maxFileSize | Type: INT | Category: field
+  Name: openFile | Type: INT | Category: function | Params: (INT fileId)
+================================
+
+=== Scope: openFile (Parent: FileManager) ===
+  Name: fileId | Type: INT | Category: param
+================================
+
+=== Scope: calculateArea (Parent: Global) ===
+  Name: area | Type: FLOAT | Category: variable
+  Name: invalidArea | Type: float | Category: variable
+  Name: length | Type: FLOAT | Category: param
+  Name: testValue | Type: INT | Category: variable
+  Name: width | Type: FLOAT | Category: param
+================================
+
+=== Scope: main (Parent: Global) ===
+================================
+

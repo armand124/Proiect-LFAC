@@ -32,7 +32,11 @@ class SymbolTable {
         SymbolTable(const std::string& name, SymbolTable* parent = nullptr);
         bool existsId(const std::string& s);
         IdInfo* lookup(const std::string& name);
-        void addVar(const std::string& type, const std::string& name, const std::string& category, const std::vector<ParamInfo>* param);
-        void printVars();
+        void addVar(const std::string& type, const std::string& name, const std::string& category, const std::vector<ParamInfo>* param = nullptr);
+        void print(std::ostream& os);
+        SymbolTable* getParent();
+        static const std::vector<SymbolTable*>& getAllTables();
         ~SymbolTable();
+    private:
+        static std::vector<SymbolTable*> allTables;
 };

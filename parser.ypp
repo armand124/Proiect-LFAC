@@ -3,6 +3,7 @@
     #include <string>
     #include <cstring>
     #include <vector>
+    #include "SymbolTable.h"
 }
 
 %{
@@ -10,17 +11,22 @@
     #include <string>
     #include <cstring>
     #include <vector>
+    #include <fstream>
+    #include "SymbolTable.h"
 
     #define YYDEBUG 1 
     
     extern int yylex();
     void yyerror(const char *s);
+
+    SymbolTable* currentScope = nullptr;
 %}
 
 %union {
     int val_int;
     float val_float;
     std::string* Str;
+    std::vector<ParamInfo>* Params;
 }
 
 /* Token-uri și Tipuri */
@@ -34,6 +40,7 @@
 %token OPEN_CURLY_BRACE CLOSED_CURLY_BRACE SEMICOLON DOT COMMA DOLLA_SIGN
 
 %type <Str> type_specifier
+%type <Params> func_params
 
 %right ASSIGN_OP
 %left OP_OR
@@ -54,7 +61,7 @@
 %%
 
 program:
-    global_declarations main_block
+    { currentScope = new SymbolTable("Global"); } global_declarations main_block
 ;
 
 global_declarations:
@@ -65,9 +72,14 @@ global_declarations:
 
 class_decl:
     KEYWORD_DEFINE KEYWORD_CLASS ID 
-    { }
+    { 
+        currentScope->addVar("class", *$3, "class", nullptr);
+        currentScope = new SymbolTable(*$3, currentScope);
+    }
     OPEN_CURLY_BRACE class_body CLOSED_CURLY_BRACE
-    { }
+    { 
+        currentScope = currentScope->getParent();
+    }
 ;
 
 class_body:
@@ -78,34 +90,69 @@ class_body:
 
 field_decl:
     KEYWORD_DEFINE type_specifier ID SEMICOLON
-    { }
+    { 
+        currentScope->addVar(*$2, *$3, "field", nullptr);
+    }
 ;
 
 method_decl:
     KEYWORD_DEFINE KEYWORD_FUNC type_specifier ID OPEN_ROUND_PAR func_params CLOSED_ROUND_PAR
-    { }
+    { 
+        currentScope->addVar(*$3, *$4, "function", $6);
+        currentScope = new SymbolTable(*$4, currentScope);
+        if ($6) {
+           for (const auto& param : *$6) {
+               currentScope->addVar(param.type, param.name, "param", nullptr);
+           }
+        }
+    }
     compound_statement 
-    { }
+    { 
+        currentScope = currentScope->getParent();
+    }
 ;
 
 func_decl:
     KEYWORD_DEFINE KEYWORD_FUNC type_specifier ID OPEN_ROUND_PAR func_params CLOSED_ROUND_PAR
-    { }
+    { 
+        currentScope->addVar(*$3, *$4, "function", $6);
+        currentScope = new SymbolTable(*$4, currentScope);
+        if ($6) {
+           for (const auto& param : *$6) {
+               currentScope->addVar(param.type, param.name, "param", nullptr);
+           }
+        }
+    }
     compound_statement 
-    { }
+    { 
+        currentScope = currentScope->getParent();
+    }
 ;
 
 func_params:
+    { $$ = new std::vector<ParamInfo>(); }
     |
     type_specifier DOLLA_SIGN ID
+    {
+        $$ = new std::vector<ParamInfo>();
+        $$->push_back(ParamInfo(*$1, *$3));
+    }
     |
     func_params COMMA type_specifier DOLLA_SIGN ID
+    {
+        $$ = $1;
+        $$->push_back(ParamInfo(*$3, *$5));
+    }
 ;
 main_block:
     KEYWORD_MAIN 
-    { }
+    { 
+        currentScope = new SymbolTable("main", currentScope);
+    }
     compound_statement
-    { }
+    { 
+        currentScope = currentScope->getParent();
+    }
 ;
 
 
@@ -126,9 +173,13 @@ block_item:
 
 variable_decl:
     KEYWORD_DEFINE type_specifier ID SEMICOLON
-    { }
+    { 
+        currentScope->addVar(*$2, *$3, "variable", nullptr);
+    }
     | type_specifier ID ASSIGN_OP expression SEMICOLON
-    {  }
+    { 
+        currentScope->addVar(*$1, *$2, "variable", nullptr);
+    }
 ;
 
 
@@ -204,6 +255,14 @@ int main() {
     // yydebug = 1; 
     if (yyparse() == 0) {
         std::cout << "Parsing successful!" << std::endl;
+        
+        std::ofstream outFile("tables.txt");
+        const auto& tables = SymbolTable::getAllTables();
+        for (auto table : tables) {
+            table->print(outFile);
+        }
+        outFile.close();
+        std::cout << "Symbol tables written to tables.txt" << std::endl;
     }
     return 0;
 }

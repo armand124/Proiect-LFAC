@@ -1018,13 +1018,12 @@ case 42:
 YY_RULE_SETUP
 #line 55 "sintaxa.l"
 {
-    yylval.Str = new std::string(yytext); 
-    return ID;
+    yylval.Str = new std::string(yytext); return ID;
 }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 60 "sintaxa.l"
+#line 59 "sintaxa.l"
 {
     yylval.val_int = atoi(yytext);
     return INT_CONST;
@@ -1032,7 +1031,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 65 "sintaxa.l"
+#line 64 "sintaxa.l"
 {
     yylval.val_float = atof(yytext);
     return FLOAT_CONST;
@@ -1041,25 +1040,25 @@ YY_RULE_SETUP
 case 45:
 /* rule 45 can match eol */
 YY_RULE_SETUP
-#line 70 "sintaxa.l"
+#line 69 "sintaxa.l"
 {}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 71 "sintaxa.l"
+#line 70 "sintaxa.l"
 {}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 72 "sintaxa.l"
+#line 71 "sintaxa.l"
 { printf("Eroare Lexicala: Caracter necunoscut: %s\n", yytext); exit(1); }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 74 "sintaxa.l"
+#line 73 "sintaxa.l"
 ECHO;
 	YY_BREAK
-#line 1063 "lex.yy.c"
+#line 1062 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2064,7 +2063,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 74 "sintaxa.l"
+#line 73 "sintaxa.l"
 
 int yywrap() {
     return 1;

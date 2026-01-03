@@ -14,8 +14,12 @@ IdInfo::IdInfo(const std::string& t, const std::string& n, const std::string& c,
         param = *p;
 }
 
+std::vector<SymbolTable*> SymbolTable::allTables;
+
 // Constructor
-SymbolTable::SymbolTable(const std::string& n, SymbolTable* p) : name(n), parent(p) {}
+SymbolTable::SymbolTable(const std::string& n, SymbolTable* p) : name(n), parent(p) {
+    allTables.push_back(this);
+}
 
 // Destructor
 SymbolTable::~SymbolTable() {
@@ -36,33 +40,41 @@ void SymbolTable::addVar(const std::string& type, const std::string& name, const
     ids[name] = info;
 }
 
-void SymbolTable::printVars() {
-    std::cout << "=== Scope: " << name << " ";
+void SymbolTable::print(std::ostream& os) {
+    os << "=== Scope: " << name << " ";
     if (parent != NULL) {
-        std::cout << "(Parent: " << parent->name << ")";
+        os << "(Parent: " << parent->name << ")";
     } else {
-        std::cout << "(Global)";
+        os << "(Global)";
     }
-    std::cout << " ===" << std::endl;
+    os << " ===" << std::endl;
 
     for (auto it = ids.begin(); it != ids.end(); ++it) {
         auto info = it->second;
         
-        std::cout << "  Name: " << info.name 
+        os << "  Name: " << info.name 
                   << " | Type: " << info.type 
                   << " | Category: " << info.category;
 
         if (info.category == "function" && !info.param.empty()) {
-            std::cout << " | Params: (";
+            os << " | Params: (";
             for (size_t i = 0; i < info.param.size(); ++i) {
-                std::cout << info.param[i].type << " " << info.param[i].name;
-                if (i < info.param.size() - 1) std::cout << ", ";
+                os << info.param[i].type << " " << info.param[i].name;
+                if (i < info.param.size() - 1) os << ", ";
             }
-            std::cout << ")";
+            os << ")";
         }
-        std::cout << std::endl;
+        os << std::endl;
     }
-    std::cout << "================================" << std::endl << std::endl;
+    os << "================================" << std::endl << std::endl;
+}
+
+const std::vector<SymbolTable*>& SymbolTable::getAllTables() {
+    return allTables;
+}
+
+SymbolTable* SymbolTable::getParent() {
+    return parent;
 }
 
 IdInfo* SymbolTable::lookup(const std::string& searchName) {
