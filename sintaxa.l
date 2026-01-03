@@ -53,7 +53,8 @@ LETTER [a-zA-Z]
 ";" { return SEMICOLON;}
 
 {LETTER}({LETTER}|{DIGIT})* {
-    yylval.Str = new std::string(yytext); return ID;
+    yylval.Str = new std::string(yytext); 
+    return ID;
 }
 
 {DIGIT}+ {
