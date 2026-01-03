@@ -17,9 +17,43 @@
     #define YYDEBUG 1 
     
     extern int yylex();
+    extern int yylineno;
     void yyerror(const char *s);
 
-    SymbolTable* currentScope = nullptr;
+    SymbolTable* currentScope = nullptr , *globalScope = nullptr;
+    std::map < std::string , SymbolTable* > classes;
+
+    std::string check_matching_types(std::string type1 , std::string type2)
+    {
+        if(type1 != type2)
+        {
+            std::cout << yylineno << ": " << "Cannot combine " << type1 << ' ' << "and " << type2 << " into an expression";
+            exit(1);
+        }
+
+        return type1;
+    }
+
+    bool check_func_parameters(std::string f_name , std::vector < ParamInfo > &f_param , std::vector < std::string > &c_param)
+    {
+        if(f_param.size() != c_param.size())
+        {
+            std::cout << yylineno << ": " << "Function " << f_name << " takes " << f_param.size() << " parameters, but there were given " << c_param.size();
+            exit(1);
+        }
+
+        for(int i = 0 ; i < f_param.size() ; i++)
+        {
+            if(f_param[i].type != c_param[i])
+            {
+                printf("Function %s expects %s on the %d-th parameter" , f_name.c_str() , f_param[i].type.c_str() , i + 1);
+                exit(1);
+            }
+
+        }
+
+        return true;
+    }
 %}
 
 %union {
@@ -27,6 +61,7 @@
     float val_float;
     std::string* Str;
     std::vector<ParamInfo>* Params;
+    std::vector < std::string > *params_type;
 }
 
 /* Token-uri și Tipuri */
@@ -41,6 +76,9 @@
 
 %type <Str> type_specifier
 %type <Params> func_params
+%type <Str> expression
+%type < Str >  func_call
+%type < params_type > call_args
 
 %right ASSIGN_OP
 %left OP_OR
@@ -55,13 +93,14 @@
 %left MUL_OP DIV_OP MOD_OP
 %right UMINUS
 %left DOT OPEN_RECTANGLE_PAR OPEN_ROUND_PAR
+%left COMMA 
 
 %start program
 
 %%
 
 program:
-    { currentScope = new SymbolTable("Global"); } global_declarations main_block
+    { currentScope = globalScope = new SymbolTable("Global"); yylineno = 1;} global_declarations main_block
 ;
 
 global_declarations:
@@ -73,8 +112,17 @@ global_declarations:
 class_decl:
     KEYWORD_DEFINE KEYWORD_CLASS ID 
     { 
+        SymbolTable *class_scope = SymbolTable::class_lookup(*$3 , classes);
+
+        if(class_scope != nullptr)
+        {
+            std::cout << yylineno << ": " << "Class already defined: " << *$3;
+            exit(1);
+        }
+
         currentScope->addVar("class", *$3, "class", nullptr);
         currentScope = new SymbolTable(*$3, currentScope);
+        classes[*$3] = currentScope;
     }
     OPEN_CURLY_BRACE class_body CLOSED_CURLY_BRACE
     { 
@@ -197,8 +245,59 @@ statement:
 
 assignment:
     ID ASSIGN_OP expression
-    { }
+    {
+        IdInfo *id_info = currentScope -> lookup(*$1);
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
+            exit(1);
+        }
+
+        if(id_info -> type != *$3)
+        {
+            std::cout << yylineno << ": " << "Casting not allowed between " << id_info -> type << " and " << *$3;
+            exit(1);
+        }
+    }
     | ID DOT ID ASSIGN_OP expression
+    {
+        IdInfo *id_info = currentScope -> lookup(*$1);
+        
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
+            exit(1);
+        }
+
+        IdInfo *id_class = globalScope -> lookup(id_info -> type);
+
+        if(id_class == nullptr)
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+        else if(id_class -> category != "class")
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+
+        SymbolTable *class_scope = SymbolTable::class_lookup(id_info -> type , classes);
+        IdInfo *submember = class_scope -> lookup(*$3);
+
+        if(submember == nullptr)
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have member: " << *$3;
+            exit(1);
+        }
+
+        if(submember -> type != *$5)
+        {
+            std::cout << yylineno << ": " << "Casting not allowed between " << submember -> type << " and " << *$5;
+            exit(1);
+        }
+    }
 ;
 
 print_stmt:
@@ -207,37 +306,211 @@ print_stmt:
 
 func_call:
     ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR
-    { }
+    { 
+        IdInfo *id_info = currentScope -> lookup(*$1);
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Function: " << *$1 << " does not exist";
+            exit(1); 
+        }
+
+        check_func_parameters(*$1 , id_info -> param , *$3);
+        $$ = new std::string(id_info -> return_type);
+    }
     | ID DOT ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR
+    {
+        IdInfo *id_info = currentScope -> lookup(*$1);
+        
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
+            exit(1);
+        }
+
+        IdInfo *id_class = globalScope -> lookup(id_info -> type);
+
+        if(id_class == nullptr)
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+        else if(id_class -> category != "class")
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+
+        SymbolTable *class_scope = SymbolTable::class_lookup(id_info -> type , classes);
+        IdInfo *submember = class_scope -> lookup(*$3);
+
+        if(submember == nullptr)
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have member: " << *$3;
+            exit(1);
+        }
+        else if(submember -> category != "function")
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have function called: " << *$3;
+        }
+
+
+        check_func_parameters(*$3 , submember -> param , *$5);
+        $$ = new std::string(submember -> return_type);
+    }
 ;
 
 call_args:
-
-    | expression
+    {
+        std::vector < std::string > *result = new std::vector < std::string >;
+        $$ = result;
+    }
+    |
+    expression 
+    {
+        std::vector < std::string > *result = new std::vector < std::string >;
+        result -> push_back(*$1);
+        $$ = result;
+    }
     | call_args COMMA expression
+    {
+        std::vector < std::string > *result = $1;
+        result -> push_back(*$3);
+        $$ = result;
+    }
 ;
 
 expression:
     expression ADD_OP expression
+    {
+        check_matching_types(*$1 , *$3);
+
+        $$ = $1;
+    }
     | expression SUB_OP expression
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
     | expression MUL_OP expression
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
     | expression DIV_OP expression
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
     | expression OP_AND expression
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
     | expression OP_OR expression
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
     | expression LT_OP expression
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
     | expression GT_OP expression
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
     | expression LEQ_OP expression
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
     | expression GEQ_OP expression
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
     | expression NEQ_OP expression
-    | expression EQ_OP expression
-    | OPEN_ROUND_PAR expression CLOSED_ROUND_PAR
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
+    | expression EQ_OP expression 
+    {
+        check_matching_types(*$1 , *$3);
+        $$ = $1;
+    }
+    | OPEN_ROUND_PAR expression CLOSED_ROUND_PAR {$$ = $2;}
     | ID 
-    | DOLLA_SIGN ID
-    | INT_CONST
-    | FLOAT_CONST
-    | func_call
-    | ID DOT ID
-    | SUB_OP expression %prec UMINUS
+    {
+        IdInfo *id_info = currentScope -> lookup(*$1);
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
+            exit(1);
+        }
+
+        $$ = new std::string(id_info -> type);
+    }
+    | DOLLA_SIGN ID 
+    {
+        IdInfo *id_info = currentScope -> lookup(*$2);
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$2;
+            exit(1);
+        }
+
+        if(id_info -> category != "param")
+        {
+            std::cout << yylineno << ": " << "Variable not a parameter: " << *$2;
+            exit(1);
+        }
+
+        $$ = new std::string(id_info -> type);
+    }
+    | INT_CONST {$$ = new std::string("INT");}
+    | FLOAT_CONST {$$ = new std::string("FLOAT");}
+    | func_call {$$ = $1;}
+    | ID DOT ID 
+    {
+        IdInfo *id_info = currentScope -> lookup(*$1);
+        
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
+            exit(1);
+        }
+
+        IdInfo *id_class = globalScope -> lookup(id_info -> type);
+
+        if(id_class == nullptr)
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+        else if(id_class -> category != "class")
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+
+        SymbolTable *class_scope = SymbolTable::class_lookup(id_info -> type , classes);
+        IdInfo *submember = class_scope -> lookup(*$3);
+
+        if(submember == nullptr)
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have member: " << *$3;
+            exit(1);
+        }
+
+        $$ = new std::string(submember -> type);
+    }
+    | SUB_OP expression %prec UMINUS {$$ = $2;}
 ;
 
 type_specifier:
@@ -254,7 +527,7 @@ void yyerror(const char *s) {
 int main() {
     // yydebug = 1; 
     if (yyparse() == 0) {
-        std::cout << "Parsing successful!" << std::endl;
+        std::cout << yylineno << ": " << "Parsing successful!" << std::endl;
         
         std::ofstream outFile("tables.txt");
         const auto& tables = SymbolTable::getAllTables();
@@ -262,7 +535,7 @@ int main() {
             table->print(outFile);
         }
         outFile.close();
-        std::cout << "Symbol tables written to tables.txt" << std::endl;
+        std::cout << yylineno << ": " << "Symbol tables written to tables.txt" << std::endl;
     }
     return 0;
 }

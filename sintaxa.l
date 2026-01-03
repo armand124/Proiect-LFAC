@@ -66,7 +66,8 @@ LETTER [a-zA-Z]
     return FLOAT_CONST;
 }
 
-[ \t\n]+ {}
+[ \t]+    {}
+\n        { yylineno++; }   
 "#".* {}
 . { printf("Eroare Lexicala: Caracter necunoscut: %s\n", yytext); exit(1); }
 

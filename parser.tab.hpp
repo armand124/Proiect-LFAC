@@ -116,14 +116,15 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 25 "parser.ypp"
+#line 59 "parser.ypp"
 
     int val_int;
     float val_float;
     std::string* Str;
     std::vector<ParamInfo>* Params;
+    std::vector < std::string > *params_type;
 
-#line 127 "parser.tab.hpp"
+#line 128 "parser.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

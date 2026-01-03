@@ -3,6 +3,9 @@ define class FileManager {
     define INT maxFileSize;
 
     define func INT openFile(INT $fileId) {
+        define INT chestie;
+       
+
         if $fileId IS 0 then {
             return 0;
         }
@@ -10,27 +13,15 @@ define class FileManager {
     }
 }
 
-define func FLOAT calculateArea(FLOAT $length,FLOAT $width) {
-    define FLOAT area;
+define func INT f(INT $x , FLOAT $y , FileManager $z) 
+{
 
-    if $length <= 0 OR $width <= 0 then {
-        Print(0.0);
-        return 0.0;
-    }
-
-    area = $length * $width;
-    define INT testValue;
-    testValue = 5;
-    
-    if testValue == 5 then {
-        define float invalidArea;
-        invalidArea = calculateArea(-1.0, 5.0);
-    }
-    return area;
 }
 
+define FileManager x;
+define FileManager x;
+
 main {
-
-    Print(calculateArea(10.5, 8.0));
-
+    
+    x.openFile(200.0 , 12);
 }

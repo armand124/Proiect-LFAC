@@ -1,6 +1,7 @@
 === Scope: Global (Global) ===
   Name: FileManager | Type: class | Category: class
-  Name: calculateArea | Type: FLOAT | Category: function | Params: (FLOAT length, FLOAT width)
+  Name: f | Type: INT | Category: function | Params: (INT x, FLOAT y, FileManager z)
+  Name: x | Type: FileManager | Category: variable
 ================================
 
 === Scope: FileManager (Parent: Global) ===
@@ -10,15 +11,14 @@
 ================================
 
 === Scope: openFile (Parent: FileManager) ===
+  Name: chestie | Type: INT | Category: variable
   Name: fileId | Type: INT | Category: param
 ================================
 
-=== Scope: calculateArea (Parent: Global) ===
-  Name: area | Type: FLOAT | Category: variable
-  Name: invalidArea | Type: float | Category: variable
-  Name: length | Type: FLOAT | Category: param
-  Name: testValue | Type: INT | Category: variable
-  Name: width | Type: FLOAT | Category: param
+=== Scope: f (Parent: Global) ===
+  Name: x | Type: INT | Category: param
+  Name: y | Type: FLOAT | Category: param
+  Name: z | Type: FileManager | Category: param
 ================================
 
 === Scope: main (Parent: Global) ===

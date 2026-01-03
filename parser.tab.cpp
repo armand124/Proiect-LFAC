@@ -79,11 +79,45 @@
     #define YYDEBUG 1 
     
     extern int yylex();
+    extern int yylineno;
     void yyerror(const char *s);
 
-    SymbolTable* currentScope = nullptr;
+    SymbolTable* currentScope = nullptr , *globalScope = nullptr;
+    std::map < std::string , SymbolTable* > classes;
 
-#line 87 "parser.tab.cpp"
+    std::string check_matching_types(std::string type1 , std::string type2)
+    {
+        if(type1 != type2)
+        {
+            std::cout << yylineno << ": " << "Cannot combine " << type1 << ' ' << "and " << type2 << " into an expression";
+            exit(1);
+        }
+
+        return type1;
+    }
+
+    bool check_func_parameters(std::string f_name , std::vector < ParamInfo > &f_param , std::vector < std::string > &c_param)
+    {
+        if(f_param.size() != c_param.size())
+        {
+            std::cout << yylineno << ": " << "Function " << f_name << " takes " << f_param.size() << " parameters, but there were given " << c_param.size();
+            exit(1);
+        }
+
+        for(int i = 0 ; i < f_param.size() ; i++)
+        {
+            if(f_param[i].type != c_param[i])
+            {
+                printf("Function %s expects %s on the %d-th parameter" , f_name.c_str() , f_param[i].type.c_str() , i + 1);
+                exit(1);
+            }
+
+        }
+
+        return true;
+    }
+
+#line 121 "parser.tab.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -572,15 +606,15 @@ static const yytype_int8 yytranslate[] =
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    64,    64,    64,    67,    68,    69,    70,    75,    74,
-      85,    87,    88,    92,   100,    99,   117,   116,   133,   135,
-     141,   149,   148,   160,   163,   164,   168,   169,   175,   179,
-     188,   189,   190,   191,   192,   193,   194,   195,   199,   201,
-     205,   209,   211,   214,   216,   217,   221,   222,   223,   224,
-     225,   226,   227,   228,   229,   230,   231,   232,   233,   234,
-     235,   236,   237,   238,   239,   240,   244,   245
+       0,   103,   103,   103,   106,   107,   108,   109,   114,   113,
+     133,   135,   136,   140,   148,   147,   165,   164,   181,   183,
+     189,   197,   196,   208,   211,   212,   216,   217,   223,   227,
+     236,   237,   238,   239,   240,   241,   242,   243,   247,   263,
+     304,   308,   321,   364,   369,   375,   384,   390,   395,   400,
+     405,   410,   415,   420,   425,   430,   435,   440,   445,   446,
+     458,   476,   477,   478,   479,   513,   517,   518
 };
 #endif
 
@@ -1265,38 +1299,47 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* $@1: %empty  */
-#line 64 "parser.ypp"
-    { currentScope = new SymbolTable("Global"); }
-#line 1271 "parser.tab.cpp"
+#line 103 "parser.ypp"
+    { currentScope = globalScope = new SymbolTable("Global"); yylineno = 1;}
+#line 1305 "parser.tab.cpp"
     break;
 
   case 8: /* $@2: %empty  */
-#line 75 "parser.ypp"
+#line 114 "parser.ypp"
     { 
+        SymbolTable *class_scope = SymbolTable::class_lookup(*(yyvsp[0].Str) , classes);
+
+        if(class_scope != nullptr)
+        {
+            std::cout << yylineno << ": " << "Class already defined: " << *(yyvsp[0].Str);
+            exit(1);
+        }
+
         currentScope->addVar("class", *(yyvsp[0].Str), "class", nullptr);
         currentScope = new SymbolTable(*(yyvsp[0].Str), currentScope);
+        classes[*(yyvsp[0].Str)] = currentScope;
     }
-#line 1280 "parser.tab.cpp"
+#line 1323 "parser.tab.cpp"
     break;
 
   case 9: /* class_decl: KEYWORD_DEFINE KEYWORD_CLASS ID $@2 OPEN_CURLY_BRACE class_body CLOSED_CURLY_BRACE  */
-#line 80 "parser.ypp"
+#line 128 "parser.ypp"
     { 
         currentScope = currentScope->getParent();
     }
-#line 1288 "parser.tab.cpp"
+#line 1331 "parser.tab.cpp"
     break;
 
   case 13: /* field_decl: KEYWORD_DEFINE type_specifier ID SEMICOLON  */
-#line 93 "parser.ypp"
+#line 141 "parser.ypp"
     { 
         currentScope->addVar(*(yyvsp[-2].Str), *(yyvsp[-1].Str), "field", nullptr);
     }
-#line 1296 "parser.tab.cpp"
+#line 1339 "parser.tab.cpp"
     break;
 
   case 14: /* $@3: %empty  */
-#line 100 "parser.ypp"
+#line 148 "parser.ypp"
     { 
         currentScope->addVar(*(yyvsp[-4].Str), *(yyvsp[-3].Str), "function", (yyvsp[-1].Params));
         currentScope = new SymbolTable(*(yyvsp[-3].Str), currentScope);
@@ -1306,19 +1349,19 @@ yyreduce:
            }
         }
     }
-#line 1310 "parser.tab.cpp"
+#line 1353 "parser.tab.cpp"
     break;
 
   case 15: /* method_decl: KEYWORD_DEFINE KEYWORD_FUNC type_specifier ID OPEN_ROUND_PAR func_params CLOSED_ROUND_PAR $@3 compound_statement  */
-#line 110 "parser.ypp"
+#line 158 "parser.ypp"
     { 
         currentScope = currentScope->getParent();
     }
-#line 1318 "parser.tab.cpp"
+#line 1361 "parser.tab.cpp"
     break;
 
   case 16: /* $@4: %empty  */
-#line 117 "parser.ypp"
+#line 165 "parser.ypp"
     { 
         currentScope->addVar(*(yyvsp[-4].Str), *(yyvsp[-3].Str), "function", (yyvsp[-1].Params));
         currentScope = new SymbolTable(*(yyvsp[-3].Str), currentScope);
@@ -1328,99 +1371,454 @@ yyreduce:
            }
         }
     }
-#line 1332 "parser.tab.cpp"
+#line 1375 "parser.tab.cpp"
     break;
 
   case 17: /* func_decl: KEYWORD_DEFINE KEYWORD_FUNC type_specifier ID OPEN_ROUND_PAR func_params CLOSED_ROUND_PAR $@4 compound_statement  */
-#line 127 "parser.ypp"
+#line 175 "parser.ypp"
     { 
         currentScope = currentScope->getParent();
     }
-#line 1340 "parser.tab.cpp"
+#line 1383 "parser.tab.cpp"
     break;
 
   case 18: /* func_params: %empty  */
-#line 133 "parser.ypp"
+#line 181 "parser.ypp"
     { (yyval.Params) = new std::vector<ParamInfo>(); }
-#line 1346 "parser.tab.cpp"
+#line 1389 "parser.tab.cpp"
     break;
 
   case 19: /* func_params: type_specifier DOLLA_SIGN ID  */
-#line 136 "parser.ypp"
+#line 184 "parser.ypp"
     {
         (yyval.Params) = new std::vector<ParamInfo>();
         (yyval.Params)->push_back(ParamInfo(*(yyvsp[-2].Str), *(yyvsp[0].Str)));
     }
-#line 1355 "parser.tab.cpp"
+#line 1398 "parser.tab.cpp"
     break;
 
   case 20: /* func_params: func_params COMMA type_specifier DOLLA_SIGN ID  */
-#line 142 "parser.ypp"
+#line 190 "parser.ypp"
     {
         (yyval.Params) = (yyvsp[-4].Params);
         (yyval.Params)->push_back(ParamInfo(*(yyvsp[-2].Str), *(yyvsp[0].Str)));
     }
-#line 1364 "parser.tab.cpp"
+#line 1407 "parser.tab.cpp"
     break;
 
   case 21: /* $@5: %empty  */
-#line 149 "parser.ypp"
+#line 197 "parser.ypp"
     { 
         currentScope = new SymbolTable("main", currentScope);
     }
-#line 1372 "parser.tab.cpp"
+#line 1415 "parser.tab.cpp"
     break;
 
   case 22: /* main_block: KEYWORD_MAIN $@5 compound_statement  */
-#line 153 "parser.ypp"
+#line 201 "parser.ypp"
     { 
         currentScope = currentScope->getParent();
     }
-#line 1380 "parser.tab.cpp"
+#line 1423 "parser.tab.cpp"
     break;
 
   case 28: /* variable_decl: KEYWORD_DEFINE type_specifier ID SEMICOLON  */
-#line 176 "parser.ypp"
+#line 224 "parser.ypp"
     { 
         currentScope->addVar(*(yyvsp[-2].Str), *(yyvsp[-1].Str), "variable", nullptr);
     }
-#line 1388 "parser.tab.cpp"
+#line 1431 "parser.tab.cpp"
     break;
 
   case 29: /* variable_decl: type_specifier ID ASSIGN_OP expression SEMICOLON  */
-#line 180 "parser.ypp"
+#line 228 "parser.ypp"
     { 
         currentScope->addVar(*(yyvsp[-4].Str), *(yyvsp[-3].Str), "variable", nullptr);
     }
-#line 1396 "parser.tab.cpp"
+#line 1439 "parser.tab.cpp"
     break;
 
   case 38: /* assignment: ID ASSIGN_OP expression  */
-#line 200 "parser.ypp"
-    { }
-#line 1402 "parser.tab.cpp"
+#line 248 "parser.ypp"
+    {
+        IdInfo *id_info = currentScope -> lookup(*(yyvsp[-2].Str));
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *(yyvsp[-2].Str);
+            exit(1);
+        }
+
+        if(id_info -> type != *(yyvsp[0].Str))
+        {
+            std::cout << yylineno << ": " << "Casting not allowed between " << id_info -> type << " and " << *(yyvsp[0].Str);
+            exit(1);
+        }
+    }
+#line 1459 "parser.tab.cpp"
+    break;
+
+  case 39: /* assignment: ID DOT ID ASSIGN_OP expression  */
+#line 264 "parser.ypp"
+    {
+        IdInfo *id_info = currentScope -> lookup(*(yyvsp[-4].Str));
+        
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *(yyvsp[-4].Str);
+            exit(1);
+        }
+
+        IdInfo *id_class = globalScope -> lookup(id_info -> type);
+
+        if(id_class == nullptr)
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+        else if(id_class -> category != "class")
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+
+        SymbolTable *class_scope = SymbolTable::class_lookup(id_info -> type , classes);
+        IdInfo *submember = class_scope -> lookup(*(yyvsp[-2].Str));
+
+        if(submember == nullptr)
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have member: " << *(yyvsp[-2].Str);
+            exit(1);
+        }
+
+        if(submember -> type != *(yyvsp[0].Str))
+        {
+            std::cout << yylineno << ": " << "Casting not allowed between " << submember -> type << " and " << *(yyvsp[0].Str);
+            exit(1);
+        }
+    }
+#line 1501 "parser.tab.cpp"
     break;
 
   case 41: /* func_call: ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR  */
-#line 210 "parser.ypp"
-    { }
-#line 1408 "parser.tab.cpp"
+#line 309 "parser.ypp"
+    { 
+        IdInfo *id_info = currentScope -> lookup(*(yyvsp[-3].Str));
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Function: " << *(yyvsp[-3].Str) << " does not exist";
+            exit(1); 
+        }
+
+        check_func_parameters(*(yyvsp[-3].Str) , id_info -> param , *(yyvsp[-1]. params_type ));
+        (yyval. Str ) = new std::string(id_info -> return_type);
+    }
+#line 1518 "parser.tab.cpp"
+    break;
+
+  case 42: /* func_call: ID DOT ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR  */
+#line 322 "parser.ypp"
+    {
+        IdInfo *id_info = currentScope -> lookup(*(yyvsp[-5].Str));
+        
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *(yyvsp[-5].Str);
+            exit(1);
+        }
+
+        IdInfo *id_class = globalScope -> lookup(id_info -> type);
+
+        if(id_class == nullptr)
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+        else if(id_class -> category != "class")
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+
+        SymbolTable *class_scope = SymbolTable::class_lookup(id_info -> type , classes);
+        IdInfo *submember = class_scope -> lookup(*(yyvsp[-3].Str));
+
+        if(submember == nullptr)
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have member: " << *(yyvsp[-3].Str);
+            exit(1);
+        }
+        else if(submember -> category != "function")
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have function called: " << *(yyvsp[-3].Str);
+        }
+
+
+        check_func_parameters(*(yyvsp[-3].Str) , submember -> param , *(yyvsp[-1]. params_type ));
+        (yyval. Str ) = new std::string(submember -> return_type);
+    }
+#line 1562 "parser.tab.cpp"
+    break;
+
+  case 43: /* call_args: %empty  */
+#line 364 "parser.ypp"
+    {
+        std::vector < std::string > *result = new std::vector < std::string >;
+        (yyval. params_type ) = result;
+    }
+#line 1571 "parser.tab.cpp"
+    break;
+
+  case 44: /* call_args: expression  */
+#line 370 "parser.ypp"
+    {
+        std::vector < std::string > *result = new std::vector < std::string >;
+        result -> push_back(*(yyvsp[0].Str));
+        (yyval. params_type ) = result;
+    }
+#line 1581 "parser.tab.cpp"
+    break;
+
+  case 45: /* call_args: call_args COMMA expression  */
+#line 376 "parser.ypp"
+    {
+        std::vector < std::string > *result = (yyvsp[-2]. params_type );
+        result -> push_back(*(yyvsp[0].Str));
+        (yyval. params_type ) = result;
+    }
+#line 1591 "parser.tab.cpp"
+    break;
+
+  case 46: /* expression: expression ADD_OP expression  */
+#line 385 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1601 "parser.tab.cpp"
+    break;
+
+  case 47: /* expression: expression SUB_OP expression  */
+#line 391 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1610 "parser.tab.cpp"
+    break;
+
+  case 48: /* expression: expression MUL_OP expression  */
+#line 396 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1619 "parser.tab.cpp"
+    break;
+
+  case 49: /* expression: expression DIV_OP expression  */
+#line 401 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1628 "parser.tab.cpp"
+    break;
+
+  case 50: /* expression: expression OP_AND expression  */
+#line 406 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1637 "parser.tab.cpp"
+    break;
+
+  case 51: /* expression: expression OP_OR expression  */
+#line 411 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1646 "parser.tab.cpp"
+    break;
+
+  case 52: /* expression: expression LT_OP expression  */
+#line 416 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1655 "parser.tab.cpp"
+    break;
+
+  case 53: /* expression: expression GT_OP expression  */
+#line 421 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1664 "parser.tab.cpp"
+    break;
+
+  case 54: /* expression: expression LEQ_OP expression  */
+#line 426 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1673 "parser.tab.cpp"
+    break;
+
+  case 55: /* expression: expression GEQ_OP expression  */
+#line 431 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1682 "parser.tab.cpp"
+    break;
+
+  case 56: /* expression: expression NEQ_OP expression  */
+#line 436 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1691 "parser.tab.cpp"
+    break;
+
+  case 57: /* expression: expression EQ_OP expression  */
+#line 441 "parser.ypp"
+    {
+        check_matching_types(*(yyvsp[-2].Str) , *(yyvsp[0].Str));
+        (yyval.Str) = (yyvsp[-2].Str);
+    }
+#line 1700 "parser.tab.cpp"
+    break;
+
+  case 58: /* expression: OPEN_ROUND_PAR expression CLOSED_ROUND_PAR  */
+#line 445 "parser.ypp"
+                                                 {(yyval.Str) = (yyvsp[-1].Str);}
+#line 1706 "parser.tab.cpp"
+    break;
+
+  case 59: /* expression: ID  */
+#line 447 "parser.ypp"
+    {
+        IdInfo *id_info = currentScope -> lookup(*(yyvsp[0].Str));
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *(yyvsp[0].Str);
+            exit(1);
+        }
+
+        (yyval.Str) = new std::string(id_info -> type);
+    }
+#line 1722 "parser.tab.cpp"
+    break;
+
+  case 60: /* expression: DOLLA_SIGN ID  */
+#line 459 "parser.ypp"
+    {
+        IdInfo *id_info = currentScope -> lookup(*(yyvsp[0].Str));
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *(yyvsp[0].Str);
+            exit(1);
+        }
+
+        if(id_info -> category != "param")
+        {
+            std::cout << yylineno << ": " << "Variable not a parameter: " << *(yyvsp[0].Str);
+            exit(1);
+        }
+
+        (yyval.Str) = new std::string(id_info -> type);
+    }
+#line 1744 "parser.tab.cpp"
+    break;
+
+  case 61: /* expression: INT_CONST  */
+#line 476 "parser.ypp"
+                {(yyval.Str) = new std::string("INT");}
+#line 1750 "parser.tab.cpp"
+    break;
+
+  case 62: /* expression: FLOAT_CONST  */
+#line 477 "parser.ypp"
+                  {(yyval.Str) = new std::string("FLOAT");}
+#line 1756 "parser.tab.cpp"
+    break;
+
+  case 63: /* expression: func_call  */
+#line 478 "parser.ypp"
+                {(yyval.Str) = (yyvsp[0]. Str );}
+#line 1762 "parser.tab.cpp"
+    break;
+
+  case 64: /* expression: ID DOT ID  */
+#line 480 "parser.ypp"
+    {
+        IdInfo *id_info = currentScope -> lookup(*(yyvsp[-2].Str));
+        
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *(yyvsp[-2].Str);
+            exit(1);
+        }
+
+        IdInfo *id_class = globalScope -> lookup(id_info -> type);
+
+        if(id_class == nullptr)
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+        else if(id_class -> category != "class")
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+
+        SymbolTable *class_scope = SymbolTable::class_lookup(id_info -> type , classes);
+        IdInfo *submember = class_scope -> lookup(*(yyvsp[0].Str));
+
+        if(submember == nullptr)
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have member: " << *(yyvsp[0].Str);
+            exit(1);
+        }
+
+        (yyval.Str) = new std::string(submember -> type);
+    }
+#line 1800 "parser.tab.cpp"
+    break;
+
+  case 65: /* expression: SUB_OP expression  */
+#line 513 "parser.ypp"
+                                     {(yyval.Str) = (yyvsp[0].Str);}
+#line 1806 "parser.tab.cpp"
     break;
 
   case 66: /* type_specifier: TYPE  */
-#line 244 "parser.ypp"
+#line 517 "parser.ypp"
          { (yyval.Str) = (yyvsp[0].Str); }
-#line 1414 "parser.tab.cpp"
+#line 1812 "parser.tab.cpp"
     break;
 
   case 67: /* type_specifier: ID  */
-#line 245 "parser.ypp"
+#line 518 "parser.ypp"
          { (yyval.Str) = (yyvsp[0].Str); }
-#line 1420 "parser.tab.cpp"
+#line 1818 "parser.tab.cpp"
     break;
 
 
-#line 1424 "parser.tab.cpp"
+#line 1822 "parser.tab.cpp"
 
       default: break;
     }
@@ -1613,7 +2011,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 248 "parser.ypp"
+#line 521 "parser.ypp"
 
 
 void yyerror(const char *s) {
@@ -1623,7 +2021,7 @@ void yyerror(const char *s) {
 int main() {
     // yydebug = 1; 
     if (yyparse() == 0) {
-        std::cout << "Parsing successful!" << std::endl;
+        std::cout << yylineno << ": " << "Parsing successful!" << std::endl;
         
         std::ofstream outFile("tables.txt");
         const auto& tables = SymbolTable::getAllTables();
@@ -1631,7 +2029,7 @@ int main() {
             table->print(outFile);
         }
         outFile.close();
-        std::cout << "Symbol tables written to tables.txt" << std::endl;
+        std::cout << yylineno << ": " << "Symbol tables written to tables.txt" << std::endl;
     }
     return 0;
 }

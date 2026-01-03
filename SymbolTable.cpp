@@ -1,6 +1,8 @@
 #include "SymbolTable.h"
 #include <iostream>
 
+extern int yylineno;
+
 //Fallback constructor
 IdInfo::IdInfo() : type(""), name(""), category(""), return_type("") {}
 
@@ -32,7 +34,8 @@ bool SymbolTable::existsId(const std::string& s) {
 
 void SymbolTable::addVar(const std::string& type, const std::string& name, const std::string& category,const std::vector<ParamInfo>* param) {
     if (existsId(name)) {
-        throw std::runtime_error("Error, element already in current scope");
+        std::cout << yylineno << ": " <<  "Variable already declared in the current scope " << name;
+        exit(1);
     }
 
     IdInfo info(type, name, category, param);
@@ -87,4 +90,12 @@ IdInfo* SymbolTable::lookup(const std::string& searchName) {
     }
 
     return nullptr;
+}
+
+SymbolTable* SymbolTable::class_lookup(const std::string &name , std::map < std::string , SymbolTable* > &classes)
+{
+    if(classes.count(name) == 0)
+        return nullptr;
+
+    return classes.find(name) -> second;
 }
