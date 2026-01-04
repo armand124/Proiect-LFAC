@@ -1,7 +1,8 @@
 === Scope: Global (Global) ===
   Name: FileManager | Type: class | Category: class
   Name: f | Type: INT | Category: function | Params: (INT x, FLOAT y, FileManager z)
-  Name: x | Type: FileManager | Category: variable
+  Name: x | Type: INT | Category: variable
+  Name: y | Type: INT | Category: variable
 ================================
 
 === Scope: FileManager (Parent: Global) ===
@@ -22,5 +23,6 @@
 ================================
 
 === Scope: main (Parent: Global) ===
+  Name: z | Type: INT | Category: variable
 ================================
 

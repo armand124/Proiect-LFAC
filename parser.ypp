@@ -4,6 +4,8 @@
     #include <cstring>
     #include <vector>
     #include "SymbolTable.h"
+    #include "helper.h"
+    #include "AbstractSyntaxTree.h"
 }
 
 %{
@@ -13,6 +15,8 @@
     #include <vector>
     #include <fstream>
     #include "SymbolTable.h"
+    #include "helper.h"
+    #include "AbstractSyntaxTree.h"
 
     #define YYDEBUG 1 
     
@@ -22,38 +26,7 @@
 
     SymbolTable* currentScope = nullptr , *globalScope = nullptr;
     std::map < std::string , SymbolTable* > classes;
-
-    std::string check_matching_types(std::string type1 , std::string type2)
-    {
-        if(type1 != type2)
-        {
-            std::cout << yylineno << ": " << "Cannot combine " << type1 << ' ' << "and " << type2 << " into an expression";
-            exit(1);
-        }
-
-        return type1;
-    }
-
-    bool check_func_parameters(std::string f_name , std::vector < ParamInfo > &f_param , std::vector < std::string > &c_param)
-    {
-        if(f_param.size() != c_param.size())
-        {
-            std::cout << yylineno << ": " << "Function " << f_name << " takes " << f_param.size() << " parameters, but there were given " << c_param.size();
-            exit(1);
-        }
-
-        for(int i = 0 ; i < f_param.size() ; i++)
-        {
-            if(f_param[i].type != c_param[i])
-            {
-                printf("Function %s expects %s on the %d-th parameter" , f_name.c_str() , f_param[i].type.c_str() , i + 1);
-                exit(1);
-            }
-
-        }
-
-        return true;
-    }
+   
 %}
 
 %union {
@@ -62,6 +35,7 @@
     std::string* Str;
     std::vector<ParamInfo>* Params;
     std::vector < std::string > *params_type;
+    ASTnode *node;
 }
 
 /* Token-uri și Tipuri */
@@ -76,7 +50,7 @@
 
 %type <Str> type_specifier
 %type <Params> func_params
-%type <Str> expression
+%type <node> expression
 %type < Str >  func_call
 %type < params_type > call_args
 
@@ -100,7 +74,11 @@
 %%
 
 program:
-    { currentScope = globalScope = new SymbolTable("Global"); yylineno = 1;} global_declarations main_block
+    { 
+        currentScope = globalScope = new SymbolTable("Global"); 
+        //Data data(TYPE::INT , 10);
+        yylineno = 1;
+    } global_declarations main_block
 ;
 
 global_declarations:
@@ -254,11 +232,15 @@ assignment:
             exit(1);
         }
 
-        if(id_info -> type != *$3)
+        if(id_info -> type != $3 -> get_type())
         {
-            std::cout << yylineno << ": " << "Casting not allowed between " << id_info -> type << " and " << *$3;
+            std::cout << yylineno << ": " << "Casting not allowed between " << id_info -> type << " and " << $3 -> get_type();
             exit(1);
         }
+
+        id_info -> value = transf($3 -> evaluate());
+        std::cout << id_info -> value.get_int();
+        std::cout << '\n';
     }
     | ID DOT ID ASSIGN_OP expression
     {
@@ -292,9 +274,9 @@ assignment:
             exit(1);
         }
 
-        if(submember -> type != *$5)
+        if(submember -> type != $5 -> get_type())
         {
-            std::cout << yylineno << ": " << "Casting not allowed between " << submember -> type << " and " << *$5;
+            std::cout << yylineno << ": " << "Casting not allowed between " << submember -> type << " and " << $5 -> get_type();
             exit(1);
         }
     }
@@ -369,13 +351,13 @@ call_args:
     expression 
     {
         std::vector < std::string > *result = new std::vector < std::string >;
-        result -> push_back(*$1);
+        result -> push_back($1 -> get_type());
         $$ = result;
     }
     | call_args COMMA expression
     {
         std::vector < std::string > *result = $1;
-        result -> push_back(*$3);
+        result -> push_back($3 -> get_type());
         $$ = result;
     }
 ;
@@ -383,64 +365,93 @@ call_args:
 expression:
     expression ADD_OP expression
     {
-        check_matching_types(*$1 , *$3);
-
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR , OP::ADD_) , $3 , $1 -> get_type_ptr());
     }
     | expression SUB_OP expression
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::SUB_) , $3 , $1 -> get_type_ptr());
     }
     | expression MUL_OP expression
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::MUL_) , $3 , $1 -> get_type_ptr());
     }
     | expression DIV_OP expression
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::DIV_) , $3 , $1 -> get_type_ptr());
     }
     | expression OP_AND expression
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_AND) , $3 , $1 -> get_type_ptr());
     }
     | expression OP_OR expression
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_OR) , $3 , $1 -> get_type_ptr());
+    }
+    | expression OP_BIT_OR expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_BIT_OR) , $3 , $1 -> get_type_ptr());
+    }
+    | expression OP_BIT_XOR expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_BIT_XOR) , $3 , $1 -> get_type_ptr());
+    }
+    | expression OP_BIT_AND expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_BIT_AND) , $3 , $1 -> get_type_ptr());
+    }
+    | expression OP_BIT_LSHIFT expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_BIT_LSHIFT) , $3 , $1 -> get_type_ptr());
+    }
+    | expression OP_BIT_RSHIFT expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_BIT_RSHIFT) , $3 , $1 -> get_type_ptr());
+    }
+    | expression MOD_OP expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::MOD_) , $3 , $1 -> get_type_ptr());
     }
     | expression LT_OP expression
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::LT_) , $3 , new std::string("BOOL"));
     }
     | expression GT_OP expression
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::GT_) , $3 , new std::string("BOOL"));
     }
     | expression LEQ_OP expression
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::LEQ_) , $3 , new std::string("BOOL"));
     }
     | expression GEQ_OP expression
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::GEQ_) , $3 , new std::string("BOOL"));
     }
     | expression NEQ_OP expression
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::NEQ_) , $3 , new std::string("BOOL"));
     }
     | expression EQ_OP expression 
     {
-        check_matching_types(*$1 , *$3);
-        $$ = $1;
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::EQ_) , $3 , new std::string("BOOL"));
     }
     | OPEN_ROUND_PAR expression CLOSED_ROUND_PAR {$$ = $2;}
     | ID 
@@ -453,7 +464,7 @@ expression:
             exit(1);
         }
 
-        $$ = new std::string(id_info -> type);
+        $$ = new ASTnode(nullptr , Data(TYPE::ID_INFO , id_info) , nullptr , new std::string(id_info -> type));
     }
     | DOLLA_SIGN ID 
     {
@@ -471,11 +482,11 @@ expression:
             exit(1);
         }
 
-        $$ = new std::string(id_info -> type);
+        $$ = new ASTnode(nullptr , Data(TYPE::ID_INFO , id_info) , nullptr , new std::string(id_info -> type));
     }
-    | INT_CONST {$$ = new std::string("INT");}
-    | FLOAT_CONST {$$ = new std::string("FLOAT");}
-    | func_call {$$ = $1;}
+    | INT_CONST {$$ = new ASTnode(nullptr , Data(TYPE::INT , $1) , nullptr , new std::string("INT"));}
+    | FLOAT_CONST {$$ = new ASTnode(nullptr , Data(TYPE::FLOAT , $1) , nullptr , new std::string("FLOAT"));}
+    | func_call {$$ = nullptr;}
     | ID DOT ID 
     {
         IdInfo *id_info = currentScope -> lookup(*$1);
@@ -508,9 +519,11 @@ expression:
             exit(1);
         }
 
-        $$ = new std::string(submember -> type);
+       // $$ = new std::string(submember -> type);
+        $$ = new ASTnode(nullptr , Data(TYPE::ID_INFO , submember) , nullptr , new std::string(submember -> type));
+
     }
-    | SUB_OP expression %prec UMINUS {$$ = $2;}
+    | SUB_OP expression %prec UMINUS {$$ = nullptr;}
 ;
 
 type_specifier:
@@ -527,7 +540,7 @@ void yyerror(const char *s) {
 int main() {
     // yydebug = 1; 
     if (yyparse() == 0) {
-        std::cout << yylineno << ": " << "Parsing successful!" << std::endl;
+        std::cout << "Parsing successful!" << std::endl;
         
         std::ofstream outFile("tables.txt");
         const auto& tables = SymbolTable::getAllTables();
@@ -535,7 +548,7 @@ int main() {
             table->print(outFile);
         }
         outFile.close();
-        std::cout << yylineno << ": " << "Symbol tables written to tables.txt" << std::endl;
+        std::cout << "Symbol tables written to tables.txt" << std::endl;
     }
     return 0;
 }

@@ -4,7 +4,8 @@ define class FileManager {
 
     define func INT openFile(INT $fileId) {
         define INT chestie;
-       
+
+        chestie = 10;
 
         if $fileId IS 0 then {
             return 0;
@@ -18,10 +19,12 @@ define func INT f(INT $x , FLOAT $y , FileManager $z)
 
 }
 
-define FileManager x;
-define FileManager x;
+define INT x;
+define INT y;
 
 main {
-    
-    x.openFile(200.0 , 12);
+    y = 1;
+    define INT z;
+    z = 2;
+    x = z ^ y;
 }

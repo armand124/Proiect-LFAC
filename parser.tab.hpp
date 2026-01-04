@@ -52,8 +52,10 @@ extern int yydebug;
     #include <cstring>
     #include <vector>
     #include "SymbolTable.h"
+    #include "helper.h"
+    #include "AbstractSyntaxTree.h"
 
-#line 57 "parser.tab.hpp"
+#line 59 "parser.tab.hpp"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -116,15 +118,16 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 59 "parser.ypp"
+#line 32 "parser.ypp"
 
     int val_int;
     float val_float;
     std::string* Str;
     std::vector<ParamInfo>* Params;
     std::vector < std::string > *params_type;
+    ASTnode *node;
 
-#line 128 "parser.tab.hpp"
+#line 131 "parser.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

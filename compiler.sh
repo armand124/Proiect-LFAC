@@ -1,1 +1,1 @@
- bison -d parser.ypp && flex sintaxa.l && g++ lex.yy.c parser.tab.cpp SymbolTable.cpp -o interpreter
+ bison -d parser.ypp && flex sintaxa.l && g++ lex.yy.c parser.tab.cpp SymbolTable.cpp AbstractSyntaxTree.cpp helper.cpp -o interpreter

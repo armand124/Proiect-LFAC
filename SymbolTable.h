@@ -3,6 +3,31 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "helper.h"
+
+union valueId
+{
+    int x;
+    float y;
+    bool z;
+    std::string *s;
+};
+
+struct DataId
+{
+    int type;
+    valueId v;
+    
+    DataId(int type , int x);
+    DataId(int type , float x);
+    DataId(int type , bool x);
+    DataId(int type , std::string *x );
+    
+    int get_int();
+    float get_float();
+    bool get_bool();
+    std::string *get_string();
+};
 
 struct ParamInfo{
     std::string type;
@@ -18,9 +43,10 @@ class IdInfo {
         std::string category;
         std::string return_type;
         std::vector<ParamInfo>param;
+        DataId value;
 
         IdInfo();
-        IdInfo(const std::string& t,const std::string& n, const std::string& c, const std::vector<ParamInfo>*);
+        IdInfo(const std::string& t,const std::string& n, const std::string& c, const std::vector<ParamInfo>* , DataId value = DataId(TYPE::INT , 0));
 };
 
 class SymbolTable {
@@ -41,3 +67,8 @@ class SymbolTable {
     private:
         static std::vector<SymbolTable*> allTables;
 };
+
+std::string check_matching_types(std::string type1 , std::string type2);
+bool check_func_parameters(std::string f_name , std::vector < ParamInfo > &f_param , std::vector < std::string > &c_param);
+
+

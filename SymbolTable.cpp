@@ -1,14 +1,50 @@
 #include "SymbolTable.h"
 #include <iostream>
+#include <cassert>
+#include "helper.h"
+
 
 extern int yylineno;
 
+std::string check_matching_types(std::string type1 , std::string type2)
+{
+    if(type1 != type2)
+    {
+        std::cout << yylineno << ": " << "Cannot combine " << type1 << ' ' << "and " << type2 << " into an expression";
+        exit(1);
+    }
+
+    return type1;
+}
+
+bool check_func_parameters(std::string f_name , std::vector < ParamInfo > &f_param , std::vector < std::string > &c_param)
+{
+    if(f_param.size() != c_param.size())
+    {
+        std::cout << yylineno << ": " << "Function " << f_name << " takes " << f_param.size() << " parameters, but there were given " << c_param.size();
+        exit(1);
+    }
+
+    for(int i = 0 ; i < f_param.size() ; i++)
+    {
+        if(f_param[i].type != c_param[i])
+        {
+            printf("Function %s expects %s on the %d-th parameter" , f_name.c_str() , f_param[i].type.c_str() , i + 1);
+            exit(1);
+        }
+
+    }
+
+    return true;
+}
+
+
 //Fallback constructor
-IdInfo::IdInfo() : type(""), name(""), category(""), return_type("") {}
+IdInfo::IdInfo() : type(""), name(""), category(""), return_type("") , value(DataId(TYPE::INT , 0)) {}
 
 // Constructor general t -> type, n -> name, c -> category, p-> parameters (optional)
-IdInfo::IdInfo(const std::string& t, const std::string& n, const std::string& c, const std::vector<ParamInfo>* p) 
-    : type(t), name(n), category(c) {
+IdInfo::IdInfo(const std::string& t, const std::string& n, const std::string& c, const std::vector<ParamInfo>* p , DataId value) 
+    : type(t), name(n), category(c) , value(value) {
     
     return_type = (c == "function" ? t : "");
     
@@ -98,4 +134,54 @@ SymbolTable* SymbolTable::class_lookup(const std::string &name , std::map < std:
         return nullptr;
 
     return classes.find(name) -> second;
+}
+
+
+
+DataId::DataId(int type , int x)
+{
+    this -> type = type;
+    this -> v.x = x;
+}
+
+DataId::DataId(int type , float x)
+{
+    this -> type = type;
+    this -> v.y = x;
+}
+
+DataId::DataId(int type , bool x)
+{
+    this -> type = type;
+    this -> v.z = x;
+}
+
+DataId::DataId(int type , std::string *x )
+{
+    this -> type = type;
+    this -> v.s = x;
+}
+
+int DataId::get_int()
+{
+    assert(type == TYPE::INT);
+    return v.x;
+}
+
+float DataId::get_float()
+{
+    assert(type == TYPE::FLOAT);
+    return v.y;
+}
+
+bool DataId::get_bool()
+{
+    assert(type == TYPE::BOOL);
+    return v.z;
+}
+
+std::string *DataId::get_string()
+{
+    assert(type == TYPE::STRING);
+    return v.s;
 }
