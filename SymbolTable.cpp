@@ -29,7 +29,7 @@ bool check_func_parameters(std::string f_name , std::vector < ParamInfo > &f_par
     {
         if(f_param[i].type != c_param[i])
         {
-            printf("Function %s expects %s on the %d-th parameter" , f_name.c_str() , f_param[i].type.c_str() , i + 1);
+            printf("%d: Function %s expects %s on the %d-th parameter" , yylineno , f_name.c_str() , f_param[i].type.c_str() , i + 1);
             exit(1);
         }
 

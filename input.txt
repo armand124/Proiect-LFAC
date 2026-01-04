@@ -8,14 +8,17 @@ define class FileManager {
         chestie = 10;
 
         if $fileId IS 0 then {
+            define INT bang;
+            bang = 10;
             return 0;
         }
         return -1;
     }
 }
 
-define func INT f(INT $x , FLOAT $y , FileManager $z) 
+define func INT f(INT $x , FLOAT $y , INT $z) 
 {
+    define FileManager r;
 
 }
 
@@ -23,10 +26,9 @@ define INT x;
 define INT y;
 
 main {
+
     define FLOAT z;
-    z = 3.5;
-    y = ((3 + 5) * 4) + 1500 ;
+    f(3 , 1.5 , 3.43) ;
     Print(y);
     Print(z);
-    define filemanager1234134123 t;
 }
