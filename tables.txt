@@ -24,6 +24,5 @@
 ================================
 
 === Scope: main (Parent: Global) ===
-  Name: z | Type: FLOAT | Category: variable
 ================================
 

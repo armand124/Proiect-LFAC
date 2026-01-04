@@ -205,10 +205,6 @@ variable_decl:
     { 
         currentScope->addVar(*$2, *$3, "variable", nullptr);
     }
-    | type_specifier ID ASSIGN_OP expression SEMICOLON
-    { 
-        currentScope->addVar(*$1, *$2, "variable", nullptr);
-    }
 ;
 
 

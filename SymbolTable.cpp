@@ -68,13 +68,23 @@ bool SymbolTable::existsId(const std::string& s) {
     return ids.find(s) != ids.end();
 }
 
+DataId decide_default_value(std::string type)
+{
+    if(type == "INT") return DataId(INT , 0);
+    if(type == "FLOAT") return DataId(FLOAT , 0);
+    if(type == "BOOL") return DataId(BOOL , 0);
+    if(type == "STRING") return DataId(STRING , new std::string);
+    return DataId(INT , 0);
+}
+
 void SymbolTable::addVar(const std::string& type, const std::string& name, const std::string& category,const std::vector<ParamInfo>* param) {
     if (existsId(name)) {
         std::cout << yylineno << ": " <<  "Variable already declared in the current scope " << name;
         exit(1);
     }
 
-    IdInfo info(type, name, category, param);
+
+    IdInfo info(type, name, category, param , decide_default_value(type));
 
     ids[name] = info;
 }
