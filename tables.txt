@@ -23,6 +23,6 @@
 ================================
 
 === Scope: main (Parent: Global) ===
-  Name: z | Type: INT | Category: variable
+  Name: z | Type: FLOAT | Category: variable
 ================================
 

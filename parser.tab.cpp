@@ -579,14 +579,14 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    77,    77,    77,    84,    85,    86,    87,    92,    91,
-     111,   113,   114,   118,   126,   125,   143,   142,   159,   161,
-     167,   175,   174,   186,   189,   190,   194,   195,   201,   205,
-     214,   215,   216,   217,   218,   219,   220,   221,   225,   245,
-     286,   290,   303,   346,   351,   357,   366,   371,   376,   381,
-     386,   391,   396,   401,   406,   411,   416,   421,   426,   431,
-     436,   441,   446,   451,   456,   457,   469,   487,   488,   489,
-     490,   526,   530,   531
+       0,    80,    80,    80,    87,    88,    89,    90,    95,    94,
+     114,   116,   117,   121,   129,   128,   146,   145,   162,   164,
+     170,   178,   177,   189,   192,   193,   197,   198,   204,   208,
+     217,   226,   227,   228,   229,   230,   244,   245,   249,   268,
+     312,   319,   332,   375,   380,   386,   395,   400,   405,   410,
+     415,   420,   425,   430,   435,   440,   445,   450,   455,   460,
+     465,   470,   475,   480,   485,   486,   498,   516,   517,   518,
+     519,   555,   559,   560
 };
 #endif
 
@@ -1303,7 +1303,7 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* $@1: %empty  */
-#line 77 "parser.ypp"
+#line 80 "parser.ypp"
     { 
         currentScope = globalScope = new SymbolTable("Global"); 
         //Data data(TYPE::INT , 10);
@@ -1313,7 +1313,7 @@ yyreduce:
     break;
 
   case 8: /* $@2: %empty  */
-#line 92 "parser.ypp"
+#line 95 "parser.ypp"
     { 
         SymbolTable *class_scope = SymbolTable::class_lookup(*(yyvsp[0].Str) , classes);
 
@@ -1331,7 +1331,7 @@ yyreduce:
     break;
 
   case 9: /* class_decl: KEYWORD_DEFINE KEYWORD_CLASS ID $@2 OPEN_CURLY_BRACE class_body CLOSED_CURLY_BRACE  */
-#line 106 "parser.ypp"
+#line 109 "parser.ypp"
     { 
         currentScope = currentScope->getParent();
     }
@@ -1339,7 +1339,7 @@ yyreduce:
     break;
 
   case 13: /* field_decl: KEYWORD_DEFINE type_specifier ID SEMICOLON  */
-#line 119 "parser.ypp"
+#line 122 "parser.ypp"
     { 
         currentScope->addVar(*(yyvsp[-2].Str), *(yyvsp[-1].Str), "field", nullptr);
     }
@@ -1347,7 +1347,7 @@ yyreduce:
     break;
 
   case 14: /* $@3: %empty  */
-#line 126 "parser.ypp"
+#line 129 "parser.ypp"
     { 
         currentScope->addVar(*(yyvsp[-4].Str), *(yyvsp[-3].Str), "function", (yyvsp[-1].Params));
         currentScope = new SymbolTable(*(yyvsp[-3].Str), currentScope);
@@ -1361,7 +1361,7 @@ yyreduce:
     break;
 
   case 15: /* method_decl: KEYWORD_DEFINE KEYWORD_FUNC type_specifier ID OPEN_ROUND_PAR func_params CLOSED_ROUND_PAR $@3 compound_statement  */
-#line 136 "parser.ypp"
+#line 139 "parser.ypp"
     { 
         currentScope = currentScope->getParent();
     }
@@ -1369,7 +1369,7 @@ yyreduce:
     break;
 
   case 16: /* $@4: %empty  */
-#line 143 "parser.ypp"
+#line 146 "parser.ypp"
     { 
         currentScope->addVar(*(yyvsp[-4].Str), *(yyvsp[-3].Str), "function", (yyvsp[-1].Params));
         currentScope = new SymbolTable(*(yyvsp[-3].Str), currentScope);
@@ -1383,7 +1383,7 @@ yyreduce:
     break;
 
   case 17: /* func_decl: KEYWORD_DEFINE KEYWORD_FUNC type_specifier ID OPEN_ROUND_PAR func_params CLOSED_ROUND_PAR $@4 compound_statement  */
-#line 153 "parser.ypp"
+#line 156 "parser.ypp"
     { 
         currentScope = currentScope->getParent();
     }
@@ -1391,13 +1391,13 @@ yyreduce:
     break;
 
   case 18: /* func_params: %empty  */
-#line 159 "parser.ypp"
+#line 162 "parser.ypp"
     { (yyval.Params) = new std::vector<ParamInfo>(); }
 #line 1397 "parser.tab.cpp"
     break;
 
   case 19: /* func_params: type_specifier DOLLA_SIGN ID  */
-#line 162 "parser.ypp"
+#line 165 "parser.ypp"
     {
         (yyval.Params) = new std::vector<ParamInfo>();
         (yyval.Params)->push_back(ParamInfo(*(yyvsp[-2].Str), *(yyvsp[0].Str)));
@@ -1406,7 +1406,7 @@ yyreduce:
     break;
 
   case 20: /* func_params: func_params COMMA type_specifier DOLLA_SIGN ID  */
-#line 168 "parser.ypp"
+#line 171 "parser.ypp"
     {
         (yyval.Params) = (yyvsp[-4].Params);
         (yyval.Params)->push_back(ParamInfo(*(yyvsp[-2].Str), *(yyvsp[0].Str)));
@@ -1415,7 +1415,7 @@ yyreduce:
     break;
 
   case 21: /* $@5: %empty  */
-#line 175 "parser.ypp"
+#line 178 "parser.ypp"
     { 
         currentScope = new SymbolTable("main", currentScope);
     }
@@ -1423,7 +1423,7 @@ yyreduce:
     break;
 
   case 22: /* main_block: KEYWORD_MAIN $@5 compound_statement  */
-#line 179 "parser.ypp"
+#line 182 "parser.ypp"
     { 
         currentScope = currentScope->getParent();
     }
@@ -1431,7 +1431,7 @@ yyreduce:
     break;
 
   case 28: /* variable_decl: KEYWORD_DEFINE type_specifier ID SEMICOLON  */
-#line 202 "parser.ypp"
+#line 205 "parser.ypp"
     { 
         currentScope->addVar(*(yyvsp[-2].Str), *(yyvsp[-1].Str), "variable", nullptr);
     }
@@ -1439,15 +1439,82 @@ yyreduce:
     break;
 
   case 29: /* variable_decl: type_specifier ID ASSIGN_OP expression SEMICOLON  */
-#line 206 "parser.ypp"
+#line 209 "parser.ypp"
     { 
         currentScope->addVar(*(yyvsp[-4].Str), *(yyvsp[-3].Str), "variable", nullptr);
     }
 #line 1447 "parser.tab.cpp"
     break;
 
-  case 38: /* assignment: ID ASSIGN_OP expression  */
+  case 30: /* statement: assignment SEMICOLON  */
+#line 218 "parser.ypp"
+    {
+        if(currentScope -> get_scope_name() == "main")
+        {
+            (yyvsp[-1]. node ) -> evaluate();
+        }
+
+        (yyval. node ) = (yyvsp[-1]. node );
+    }
+#line 1460 "parser.tab.cpp"
+    break;
+
+  case 31: /* statement: KEYWORD_IF expression KEYWORD_THEN compound_statement  */
 #line 226 "parser.ypp"
+                                                            {(yyval. node ) = nullptr;}
+#line 1466 "parser.tab.cpp"
+    break;
+
+  case 32: /* statement: KEYWORD_WHILE expression compound_statement  */
+#line 227 "parser.ypp"
+                                                  {(yyval. node ) = nullptr;}
+#line 1472 "parser.tab.cpp"
+    break;
+
+  case 33: /* statement: KEYWORD_FOR assignment SEMICOLON expression SEMICOLON assignment compound_statement  */
+#line 228 "parser.ypp"
+                                                                                          {(yyval. node ) = nullptr;}
+#line 1478 "parser.tab.cpp"
+    break;
+
+  case 34: /* statement: KEYWORD_RETURN expression SEMICOLON  */
+#line 229 "parser.ypp"
+                                          {(yyval. node ) = nullptr;}
+#line 1484 "parser.tab.cpp"
+    break;
+
+  case 35: /* statement: print_stmt  */
+#line 231 "parser.ypp"
+    {
+        if(currentScope -> get_scope_name() == "main")
+        {
+            Data print_result = (yyvsp[0]. node ) -> evaluate();
+
+            if(print_result.type == INT) std::cout << print_result.get_int() << '\n';
+            if(print_result.type == FLOAT) std::cout << print_result.get_float() << '\n';
+            if(print_result.type == STRING) std::cout << *print_result.get_string() << '\n';
+            if(print_result.type == BOOL) std::cout << print_result.get_bool() << '\n';
+        }
+        
+        (yyval. node ) = (yyvsp[0]. node );
+    }
+#line 1502 "parser.tab.cpp"
+    break;
+
+  case 36: /* statement: func_call SEMICOLON  */
+#line 244 "parser.ypp"
+                          {(yyval. node ) = nullptr;}
+#line 1508 "parser.tab.cpp"
+    break;
+
+  case 37: /* statement: compound_statement  */
+#line 245 "parser.ypp"
+                         {(yyval. node ) = nullptr;}
+#line 1514 "parser.tab.cpp"
+    break;
+
+  case 38: /* assignment: ID ASSIGN_OP expression  */
+#line 250 "parser.ypp"
     {
         IdInfo *id_info = currentScope -> lookup(*(yyvsp[-2].Str));
 
@@ -1463,15 +1530,14 @@ yyreduce:
             exit(1);
         }
 
-        id_info -> value = transf((yyvsp[0].node) -> evaluate());
-        std::cout << id_info -> value.get_int();
-        std::cout << '\n';
+        ASTnode *id_astnode = new ASTnode(nullptr , Data(TYPE::ID_INFO , id_info) , nullptr , (yyvsp[0].node) -> get_type_ptr());
+        (yyval. node ) = new ASTnode(id_astnode , Data(TYPE::CHAR , ASSIGN_) , (yyvsp[0].node) , (yyvsp[0].node) -> get_type_ptr());
     }
-#line 1471 "parser.tab.cpp"
+#line 1537 "parser.tab.cpp"
     break;
 
   case 39: /* assignment: ID DOT ID ASSIGN_OP expression  */
-#line 246 "parser.ypp"
+#line 269 "parser.ypp"
     {
         IdInfo *id_info = currentScope -> lookup(*(yyvsp[-4].Str));
         
@@ -1508,12 +1574,23 @@ yyreduce:
             std::cout << yylineno << ": " << "Casting not allowed between " << submember -> type << " and " << (yyvsp[0].node) -> get_type();
             exit(1);
         }
+
+        ASTnode *id_astnode = new ASTnode(nullptr , Data(TYPE::ID_INFO , submember) , nullptr , (yyvsp[0].node) -> get_type_ptr());
+        (yyval. node ) = new ASTnode(id_astnode , Data(TYPE::CHAR , ASSIGN_) , (yyvsp[0].node) , (yyvsp[0].node) -> get_type_ptr());
     }
-#line 1513 "parser.tab.cpp"
+#line 1582 "parser.tab.cpp"
+    break;
+
+  case 40: /* print_stmt: KEYWORD_PRINT OPEN_ROUND_PAR expression CLOSED_ROUND_PAR SEMICOLON  */
+#line 313 "parser.ypp"
+    {
+        (yyval. node ) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR , PRINT) , nullptr , (yyvsp[-2].node) -> get_type_ptr());
+    }
+#line 1590 "parser.tab.cpp"
     break;
 
   case 41: /* func_call: ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR  */
-#line 291 "parser.ypp"
+#line 320 "parser.ypp"
     { 
         IdInfo *id_info = currentScope -> lookup(*(yyvsp[-3].Str));
 
@@ -1526,11 +1603,11 @@ yyreduce:
         check_func_parameters(*(yyvsp[-3].Str) , id_info -> param , *(yyvsp[-1]. params_type ));
         (yyval. Str ) = new std::string(id_info -> return_type);
     }
-#line 1530 "parser.tab.cpp"
+#line 1607 "parser.tab.cpp"
     break;
 
   case 42: /* func_call: ID DOT ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR  */
-#line 304 "parser.ypp"
+#line 333 "parser.ypp"
     {
         IdInfo *id_info = currentScope -> lookup(*(yyvsp[-5].Str));
         
@@ -1570,208 +1647,208 @@ yyreduce:
         check_func_parameters(*(yyvsp[-3].Str) , submember -> param , *(yyvsp[-1]. params_type ));
         (yyval. Str ) = new std::string(submember -> return_type);
     }
-#line 1574 "parser.tab.cpp"
+#line 1651 "parser.tab.cpp"
     break;
 
   case 43: /* call_args: %empty  */
-#line 346 "parser.ypp"
+#line 375 "parser.ypp"
     {
         std::vector < std::string > *result = new std::vector < std::string >;
         (yyval. params_type ) = result;
     }
-#line 1583 "parser.tab.cpp"
+#line 1660 "parser.tab.cpp"
     break;
 
   case 44: /* call_args: expression  */
-#line 352 "parser.ypp"
+#line 381 "parser.ypp"
     {
         std::vector < std::string > *result = new std::vector < std::string >;
         result -> push_back((yyvsp[0].node) -> get_type());
         (yyval. params_type ) = result;
     }
-#line 1593 "parser.tab.cpp"
+#line 1670 "parser.tab.cpp"
     break;
 
   case 45: /* call_args: call_args COMMA expression  */
-#line 358 "parser.ypp"
+#line 387 "parser.ypp"
     {
         std::vector < std::string > *result = (yyvsp[-2]. params_type );
         result -> push_back((yyvsp[0].node) -> get_type());
         (yyval. params_type ) = result;
     }
-#line 1603 "parser.tab.cpp"
+#line 1680 "parser.tab.cpp"
     break;
 
   case 46: /* expression: expression ADD_OP expression  */
-#line 367 "parser.ypp"
+#line 396 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR , OP::ADD_) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1612 "parser.tab.cpp"
+#line 1689 "parser.tab.cpp"
     break;
 
   case 47: /* expression: expression SUB_OP expression  */
-#line 372 "parser.ypp"
+#line 401 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::SUB_) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1621 "parser.tab.cpp"
+#line 1698 "parser.tab.cpp"
     break;
 
   case 48: /* expression: expression MUL_OP expression  */
-#line 377 "parser.ypp"
+#line 406 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::MUL_) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1630 "parser.tab.cpp"
+#line 1707 "parser.tab.cpp"
     break;
 
   case 49: /* expression: expression DIV_OP expression  */
-#line 382 "parser.ypp"
+#line 411 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::DIV_) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1639 "parser.tab.cpp"
+#line 1716 "parser.tab.cpp"
     break;
 
   case 50: /* expression: expression OP_AND expression  */
-#line 387 "parser.ypp"
+#line 416 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::_AND) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1648 "parser.tab.cpp"
+#line 1725 "parser.tab.cpp"
     break;
 
   case 51: /* expression: expression OP_OR expression  */
-#line 392 "parser.ypp"
+#line 421 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::_OR) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1657 "parser.tab.cpp"
+#line 1734 "parser.tab.cpp"
     break;
 
   case 52: /* expression: expression OP_BIT_OR expression  */
-#line 397 "parser.ypp"
+#line 426 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::_BIT_OR) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1666 "parser.tab.cpp"
+#line 1743 "parser.tab.cpp"
     break;
 
   case 53: /* expression: expression OP_BIT_XOR expression  */
-#line 402 "parser.ypp"
+#line 431 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::_BIT_XOR) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1675 "parser.tab.cpp"
+#line 1752 "parser.tab.cpp"
     break;
 
   case 54: /* expression: expression OP_BIT_AND expression  */
-#line 407 "parser.ypp"
+#line 436 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::_BIT_AND) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1684 "parser.tab.cpp"
+#line 1761 "parser.tab.cpp"
     break;
 
   case 55: /* expression: expression OP_BIT_LSHIFT expression  */
-#line 412 "parser.ypp"
+#line 441 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::_BIT_LSHIFT) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1693 "parser.tab.cpp"
+#line 1770 "parser.tab.cpp"
     break;
 
   case 56: /* expression: expression OP_BIT_RSHIFT expression  */
-#line 417 "parser.ypp"
+#line 446 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::_BIT_RSHIFT) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1702 "parser.tab.cpp"
+#line 1779 "parser.tab.cpp"
     break;
 
   case 57: /* expression: expression MOD_OP expression  */
-#line 422 "parser.ypp"
+#line 451 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::MOD_) , (yyvsp[0].node) , (yyvsp[-2].node) -> get_type_ptr());
     }
-#line 1711 "parser.tab.cpp"
+#line 1788 "parser.tab.cpp"
     break;
 
   case 58: /* expression: expression LT_OP expression  */
-#line 427 "parser.ypp"
+#line 456 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::LT_) , (yyvsp[0].node) , new std::string("BOOL"));
     }
-#line 1720 "parser.tab.cpp"
+#line 1797 "parser.tab.cpp"
     break;
 
   case 59: /* expression: expression GT_OP expression  */
-#line 432 "parser.ypp"
+#line 461 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::GT_) , (yyvsp[0].node) , new std::string("BOOL"));
     }
-#line 1729 "parser.tab.cpp"
+#line 1806 "parser.tab.cpp"
     break;
 
   case 60: /* expression: expression LEQ_OP expression  */
-#line 437 "parser.ypp"
+#line 466 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::LEQ_) , (yyvsp[0].node) , new std::string("BOOL"));
     }
-#line 1738 "parser.tab.cpp"
+#line 1815 "parser.tab.cpp"
     break;
 
   case 61: /* expression: expression GEQ_OP expression  */
-#line 442 "parser.ypp"
+#line 471 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::GEQ_) , (yyvsp[0].node) , new std::string("BOOL"));
     }
-#line 1747 "parser.tab.cpp"
+#line 1824 "parser.tab.cpp"
     break;
 
   case 62: /* expression: expression NEQ_OP expression  */
-#line 447 "parser.ypp"
+#line 476 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::NEQ_) , (yyvsp[0].node) , new std::string("BOOL"));
     }
-#line 1756 "parser.tab.cpp"
+#line 1833 "parser.tab.cpp"
     break;
 
   case 63: /* expression: expression EQ_OP expression  */
-#line 452 "parser.ypp"
+#line 481 "parser.ypp"
     {
         check_matching_types((yyvsp[-2].node) -> get_type() , (yyvsp[0].node) -> get_type());
         (yyval.node) = new ASTnode((yyvsp[-2].node) , Data(TYPE::CHAR, OP::EQ_) , (yyvsp[0].node) , new std::string("BOOL"));
     }
-#line 1765 "parser.tab.cpp"
+#line 1842 "parser.tab.cpp"
     break;
 
   case 64: /* expression: OPEN_ROUND_PAR expression CLOSED_ROUND_PAR  */
-#line 456 "parser.ypp"
+#line 485 "parser.ypp"
                                                  {(yyval.node) = (yyvsp[-1].node);}
-#line 1771 "parser.tab.cpp"
+#line 1848 "parser.tab.cpp"
     break;
 
   case 65: /* expression: ID  */
-#line 458 "parser.ypp"
+#line 487 "parser.ypp"
     {
         IdInfo *id_info = currentScope -> lookup(*(yyvsp[0].Str));
 
@@ -1783,11 +1860,11 @@ yyreduce:
 
         (yyval.node) = new ASTnode(nullptr , Data(TYPE::ID_INFO , id_info) , nullptr , new std::string(id_info -> type));
     }
-#line 1787 "parser.tab.cpp"
+#line 1864 "parser.tab.cpp"
     break;
 
   case 66: /* expression: DOLLA_SIGN ID  */
-#line 470 "parser.ypp"
+#line 499 "parser.ypp"
     {
         IdInfo *id_info = currentScope -> lookup(*(yyvsp[0].Str));
 
@@ -1805,29 +1882,29 @@ yyreduce:
 
         (yyval.node) = new ASTnode(nullptr , Data(TYPE::ID_INFO , id_info) , nullptr , new std::string(id_info -> type));
     }
-#line 1809 "parser.tab.cpp"
+#line 1886 "parser.tab.cpp"
     break;
 
   case 67: /* expression: INT_CONST  */
-#line 487 "parser.ypp"
+#line 516 "parser.ypp"
                 {(yyval.node) = new ASTnode(nullptr , Data(TYPE::INT , (yyvsp[0].val_int)) , nullptr , new std::string("INT"));}
-#line 1815 "parser.tab.cpp"
+#line 1892 "parser.tab.cpp"
     break;
 
   case 68: /* expression: FLOAT_CONST  */
-#line 488 "parser.ypp"
+#line 517 "parser.ypp"
                   {(yyval.node) = new ASTnode(nullptr , Data(TYPE::FLOAT , (yyvsp[0].val_float)) , nullptr , new std::string("FLOAT"));}
-#line 1821 "parser.tab.cpp"
+#line 1898 "parser.tab.cpp"
     break;
 
   case 69: /* expression: func_call  */
-#line 489 "parser.ypp"
+#line 518 "parser.ypp"
                 {(yyval.node) = nullptr;}
-#line 1827 "parser.tab.cpp"
+#line 1904 "parser.tab.cpp"
     break;
 
   case 70: /* expression: ID DOT ID  */
-#line 491 "parser.ypp"
+#line 520 "parser.ypp"
     {
         IdInfo *id_info = currentScope -> lookup(*(yyvsp[-2].Str));
         
@@ -1863,29 +1940,29 @@ yyreduce:
         (yyval.node) = new ASTnode(nullptr , Data(TYPE::ID_INFO , submember) , nullptr , new std::string(submember -> type));
 
     }
-#line 1867 "parser.tab.cpp"
+#line 1944 "parser.tab.cpp"
     break;
 
   case 71: /* expression: SUB_OP expression  */
-#line 526 "parser.ypp"
+#line 555 "parser.ypp"
                                      {(yyval.node) = nullptr;}
-#line 1873 "parser.tab.cpp"
+#line 1950 "parser.tab.cpp"
     break;
 
   case 72: /* type_specifier: TYPE  */
-#line 530 "parser.ypp"
+#line 559 "parser.ypp"
          { (yyval.Str) = (yyvsp[0].Str); }
-#line 1879 "parser.tab.cpp"
+#line 1956 "parser.tab.cpp"
     break;
 
   case 73: /* type_specifier: ID  */
-#line 531 "parser.ypp"
+#line 560 "parser.ypp"
          { (yyval.Str) = (yyvsp[0].Str); }
-#line 1885 "parser.tab.cpp"
+#line 1962 "parser.tab.cpp"
     break;
 
 
-#line 1889 "parser.tab.cpp"
+#line 1966 "parser.tab.cpp"
 
       default: break;
     }
@@ -2078,7 +2155,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 534 "parser.ypp"
+#line 563 "parser.ypp"
 
 
 void yyerror(const char *s) {

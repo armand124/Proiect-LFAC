@@ -23,8 +23,9 @@ define INT x;
 define INT y;
 
 main {
-    y = 1;
-    define INT z;
-    z = 2;
-    x = z ^ y;
+    define FLOAT z;
+    z = 3.5;
+    y = 1 * 100 + 4 - 4 ;
+    Print(y);
+    Print(z);
 }

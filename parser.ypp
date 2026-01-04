@@ -53,6 +53,9 @@
 %type <node> expression
 %type < Str >  func_call
 %type < params_type > call_args
+%type < node > assignment 
+%type < node > statement
+%type < node > print_stmt
 
 %right ASSIGN_OP
 %left OP_OR
@@ -212,13 +215,34 @@ variable_decl:
 
 statement:
     assignment SEMICOLON
-    | KEYWORD_IF expression KEYWORD_THEN compound_statement
-    | KEYWORD_WHILE expression compound_statement
-    | KEYWORD_FOR assignment SEMICOLON expression SEMICOLON assignment compound_statement
-    | KEYWORD_RETURN expression SEMICOLON
-    | print_stmt
-    | func_call SEMICOLON
-    | compound_statement
+    {
+        if(currentScope -> get_scope_name() == "main")
+        {
+            $1 -> evaluate();
+        }
+
+        $$ = $1;
+    }
+    | KEYWORD_IF expression KEYWORD_THEN compound_statement {$$ = nullptr;}
+    | KEYWORD_WHILE expression compound_statement {$$ = nullptr;}
+    | KEYWORD_FOR assignment SEMICOLON expression SEMICOLON assignment compound_statement {$$ = nullptr;}
+    | KEYWORD_RETURN expression SEMICOLON {$$ = nullptr;}
+    | print_stmt 
+    {
+        if(currentScope -> get_scope_name() == "main")
+        {
+            Data print_result = $1 -> evaluate();
+
+            if(print_result.type == INT) std::cout << print_result.get_int() << '\n';
+            if(print_result.type == FLOAT) std::cout << print_result.get_float() << '\n';
+            if(print_result.type == STRING) std::cout << *print_result.get_string() << '\n';
+            if(print_result.type == BOOL) std::cout << print_result.get_bool() << '\n';
+        }
+        
+        $$ = $1;
+    }
+    | func_call SEMICOLON {$$ = nullptr;}
+    | compound_statement {$$ = nullptr;}
 ;
 
 assignment:
@@ -238,9 +262,8 @@ assignment:
             exit(1);
         }
 
-        id_info -> value = transf($3 -> evaluate());
-        std::cout << id_info -> value.get_int();
-        std::cout << '\n';
+        ASTnode *id_astnode = new ASTnode(nullptr , Data(TYPE::ID_INFO , id_info) , nullptr , $3 -> get_type_ptr());
+        $$ = new ASTnode(id_astnode , Data(TYPE::CHAR , ASSIGN_) , $3 , $3 -> get_type_ptr());
     }
     | ID DOT ID ASSIGN_OP expression
     {
@@ -279,11 +302,17 @@ assignment:
             std::cout << yylineno << ": " << "Casting not allowed between " << submember -> type << " and " << $5 -> get_type();
             exit(1);
         }
+
+        ASTnode *id_astnode = new ASTnode(nullptr , Data(TYPE::ID_INFO , submember) , nullptr , $5 -> get_type_ptr());
+        $$ = new ASTnode(id_astnode , Data(TYPE::CHAR , ASSIGN_) , $5 , $5 -> get_type_ptr());
     }
 ;
 
 print_stmt:
     KEYWORD_PRINT OPEN_ROUND_PAR expression CLOSED_ROUND_PAR SEMICOLON
+    {
+        $$ = new ASTnode($3 , Data(TYPE::CHAR , PRINT) , nullptr , $3 -> get_type_ptr());
+    }
 ;
 
 func_call:

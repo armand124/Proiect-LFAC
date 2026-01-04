@@ -64,6 +64,7 @@ class SymbolTable {
         static const std::vector<SymbolTable*>& getAllTables();
         ~SymbolTable();
         static SymbolTable* class_lookup(const std::string &name , std::map < std::string , SymbolTable* > &classes);
+        std::string get_scope_name();
     private:
         static std::vector<SymbolTable*> allTables;
 };

@@ -185,3 +185,8 @@ std::string *DataId::get_string()
     assert(type == TYPE::STRING);
     return v.s;
 }
+
+std::string SymbolTable::get_scope_name() 
+{
+    return name;
+}

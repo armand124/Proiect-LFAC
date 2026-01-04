@@ -183,6 +183,19 @@ Data ASTnode::evaluate()
 
     if(data.type == CHAR)
     {
+        
+        if(data.get_char() == ASSIGN_)
+        {
+            IdInfo *id = l -> data.get_id_info();
+            id -> value = transf(rgt);
+            return rgt;
+        }
+
+        if(data.get_char() == PRINT)
+        {
+            return lft;
+        }
+
         assert(l != nullptr && r != nullptr);
         return combine(lft , data.get_char() , rgt);
     }
