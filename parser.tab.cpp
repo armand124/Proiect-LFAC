@@ -1956,13 +1956,23 @@ yyreduce:
     break;
 
   case 73: /* type_specifier: ID  */
-#line 560 "parser.ypp"
-         { (yyval.Str) = (yyvsp[0].Str); }
-#line 1962 "parser.tab.cpp"
+#line 561 "parser.ypp"
+    {
+        SymbolTable *class_scope = SymbolTable::class_lookup(*(yyvsp[0].Str) , classes);
+       
+        if(class_scope == nullptr && *(yyvsp[0].Str) != "INT" && *(yyvsp[0].Str) != "FLOAT" && *(yyvsp[0].Str) != "STRING" && *(yyvsp[0].Str) != "BOOL")
+        {
+            std::cout << yylineno << ": " << "Invalid type declared: " << *(yyvsp[0].Str) << '\n';
+            exit(1);
+        } 
+
+        (yyval.Str) = (yyvsp[0].Str); 
+    }
+#line 1972 "parser.tab.cpp"
     break;
 
 
-#line 1966 "parser.tab.cpp"
+#line 1976 "parser.tab.cpp"
 
       default: break;
     }
@@ -2155,7 +2165,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 563 "parser.ypp"
+#line 574 "parser.ypp"
 
 
 void yyerror(const char *s) {

@@ -557,7 +557,18 @@ expression:
 
 type_specifier:
     TYPE { $$ = $1; }
-    | ID { $$ = $1; }
+    | ID 
+    {
+        SymbolTable *class_scope = SymbolTable::class_lookup(*$1 , classes);
+       
+        if(class_scope == nullptr && *$1 != "INT" && *$1 != "FLOAT" && *$1 != "STRING" && *$1 != "BOOL")
+        {
+            std::cout << yylineno << ": " << "Invalid type declared: " << *$1 << '\n';
+            exit(1);
+        } 
+
+        $$ = $1; 
+    }
 ;
 
 %%
