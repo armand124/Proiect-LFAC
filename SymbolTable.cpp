@@ -73,7 +73,7 @@ DataId decide_default_value(std::string type)
     if(type == "INT") return DataId(INT , 0);
     if(type == "FLOAT") return DataId(FLOAT , 0);
     if(type == "BOOL") return DataId(BOOL , 0);
-    if(type == "STRING") return DataId(STRING , new std::string);
+    if(type == "STRING" || type == "STR") return DataId(STRING , new std::string);
     return DataId(INT , 0);
 }
 

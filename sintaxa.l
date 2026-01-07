@@ -15,7 +15,12 @@ LETTER [a-zA-Z]
 "class" {return KEYWORD_CLASS;}
 "define" {return KEYWORD_DEFINE;}
 "func" {return KEYWORD_FUNC;}
-"int"|"float"|"char"|"string"|"void"|"INT"|"FLOAT"|"CHAR"|"STR"|"VOID" {yylval.Str = new std::string(yytext); return TYPE;}
+"INT"|"FLOAT"|"CHAR"|"STR"|"BOOL"|"VOID" {
+    std::string type = yytext;
+    if (type == "STR") type = "STRING";
+    yylval.Str = new std::string(type);
+    return TYPE;
+}
 "main" {return KEYWORD_MAIN;}
 "return" {return KEYWORD_RETURN;}
 "for" {return KEYWORD_FOR;}
@@ -64,6 +69,14 @@ LETTER [a-zA-Z]
 {DIGIT}+"."{DIGIT}+ {
     yylval.val_float = atof(yytext);
     return FLOAT_CONST;
+}
+
+\"[^\"]*\" {
+    yylval.Str = new std::string(yytext);
+    // Remove quotes
+    yylval.Str -> erase(0, 1);
+    yylval.Str -> pop_back();
+    return STRING_CONST;
 }
 
 [ \t]+    {}

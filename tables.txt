@@ -1,26 +1,5 @@
 === Scope: Global (Global) ===
-  Name: FileManager | Type: class | Category: class
-  Name: f | Type: INT | Category: function | Params: (INT x, FLOAT y, INT z)
-  Name: x | Type: INT | Category: variable
-  Name: y | Type: INT | Category: variable
-================================
-
-=== Scope: FileManager (Parent: Global) ===
-  Name: filePath | Type: STR | Category: field
-  Name: maxFileSize | Type: INT | Category: field
-  Name: openFile | Type: INT | Category: function | Params: (INT fileId)
-================================
-
-=== Scope: openFile (Parent: FileManager) ===
-  Name: chestie | Type: INT | Category: variable
-  Name: fileId | Type: INT | Category: param
-================================
-
-=== Scope: f (Parent: Global) ===
-  Name: r | Type: FileManager | Category: variable
-  Name: x | Type: INT | Category: param
-  Name: y | Type: FLOAT | Category: param
-  Name: z | Type: INT | Category: param
+  Name: b | Type: BOOL | Category: variable
 ================================
 
 === Scope: main (Parent: Global) ===
