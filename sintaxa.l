@@ -25,8 +25,11 @@ LETTER [a-zA-Z]
 "return" {return KEYWORD_RETURN;}
 "for" {return KEYWORD_FOR;}
 "Print" { return KEYWORD_PRINT; }
+"true" { yylval.val_int = 1; return BOOL_CONST; }
+"false" { yylval.val_int = 0; return BOOL_CONST; }
 
 "+" {return ADD_OP;}
+"!" {return NOT_OP;}
 "-" {return SUB_OP;}
 "*" {return MUL_OP;}
 "%" {return MOD_OP;}

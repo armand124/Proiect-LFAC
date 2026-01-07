@@ -20,11 +20,11 @@ define func INT f(INT $x , FLOAT $y , INT $z)
     define FileManager r;
 }
 
-define STR x;
-define STR y;
-
+define INT t;
+define BOOL y;
 main {
-    x = "hello";
-    y = "world";
-    Print(x + " " + y);    
+    t = 10;
+    t = -1 * 10;
+    y = true;
+    Print(!(!(t!=-10)));
 }

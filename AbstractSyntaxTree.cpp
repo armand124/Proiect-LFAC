@@ -141,7 +141,7 @@ Data combine(Data l , char op , Data r)
             if(op == LEQ_) return Data(BOOL , a <= b);
             if(op == _BIT_LSHIFT) {std::cout << "Invalid operation"; exit(1);};
             if(op == _BIT_RSHIFT) {std::cout << "Invalid operation"; exit(1);};
-            if(op == ADD_) return Data(INT , new std::string(a + b));
+            if(op == ADD_) return Data(STRING , new std::string(a + b));
             if(op == SUB_) {std::cout << "Invalid operation"; exit(1);};;
             if(op == MUL_) {std::cout << "Invalid operation"; exit(1);};;
             if(op == DIV_) {std::cout << "Invalid operation"; exit(1);};;
@@ -194,6 +194,22 @@ Data ASTnode::evaluate()
         if(data.get_char() == PRINT)
         {
             return lft;
+        }
+
+        if(data.get_char() == NOT_)
+        {
+            if (lft.type == TYPE::INT)
+                return Data(TYPE::BOOL, !lft.get_int());
+            return Data(TYPE::BOOL, !lft.get_bool());
+        }
+
+        if(data.get_char() == UMINUS_)
+        {
+             if(lft.type == TYPE::INT) return Data(TYPE::INT , -lft.get_int());
+             if(lft.type == TYPE::FLOAT) return Data(TYPE::FLOAT , -lft.get_float());
+
+             std::cout << "Invalid type for unary minus";
+             exit(1);
         }
 
         assert(l != nullptr && r != nullptr);

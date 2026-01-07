@@ -177,6 +177,66 @@ test_cases = [
         "should_pass": True,
         "expected_output": "hello world" 
     },
+    {
+        "name": "Unary NOT Operator",
+        "code": """
+        define BOOL b;
+        define BOOL val;
+        main {
+            val = true;
+            b = !val;
+            Print(b);
+            val = false;
+            b = !val;
+            Print(b);
+            b = !(5 > 10);
+            Print(b);
+        }
+        """,
+        "should_pass": True,
+        "expected_output": "0\n1\n1"
+    },
+    {
+        "name": "Unary NOT Type Mismatch (Negative)",
+        "code": """
+        define BOOL b;
+        main {
+            b = !1; 
+        }
+        """,
+        "should_pass": False
+    },
+    {
+        "name": "Unary Minus",
+        "code": """
+        define INT t;
+        define FLOAT f;
+        main {
+            t = 10;
+            Print(-t);
+            t = -t;
+            Print(t);
+            f = 3.14;
+            Print(-f);
+        }
+        """,
+        "should_pass": True,
+        "expected_output": "-10\n-10\n-3.14"
+    },
+    {
+        "name": "Boolean Constants",
+        "code": """
+        define BOOL b;
+        main {
+            b = true;
+            Print(b);
+            b = false;
+            Print(b);
+        }
+        """,
+        "should_pass": True,
+        "expected_output": "1\n0"
+    },
 ]
 
 def run_tests():
