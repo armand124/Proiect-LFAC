@@ -22,7 +22,6 @@
     
     extern int yylex();
     extern int yylineno;
-    extern char* yytext;
     void yyerror(const char *s);
 
     SymbolTable* currentScope = nullptr , *globalScope = nullptr;
@@ -35,16 +34,16 @@
     float val_float;
     std::string* Str;
     std::vector<ParamInfo>* Params;
-    std::vector < ASTnode* > *Args;
+    std::vector < std::string > *params_type;
     ASTnode *node;
 }
 
-
+/* Token-uri și Tipuri */
 %token <Str> ID TYPE
 %token <val_int> INT_CONST BOOL_CONST
 %token <val_float> FLOAT_CONST
 %token <Str> STRING_CONST
-%token KEYWORD_CLASS KEYWORD_FUNC KEYWORD_IF KEYWORD_MAIN KEYWORD_RETURN KEYWORD_WHILE KEYWORD_FOR KEYWORD_PRINT KEYWORD_DEFINE KEYWORD_THEN
+%token KEYWORD_CLASS KEYWORD_FUNC KEYWORD_IF KEYWORD_MAIN KEYWORD_RETURN KEYWORD_WHILE KEYWORD_FOR KEYWORD_PRINT KEYWORD_DEFINE KEYWORD_THEN KEYWORD_CONSTR
 %token ADD_OP SUB_OP MUL_OP DIV_OP ASSIGN_OP MOD_OP EQ_OP NEQ_OP LT_OP GT_OP GEQ_OP LEQ_OP
 %token OP_AND OP_OR OP_BIT_AND OP_BIT_OR OP_BIT_XOR OP_BIT_LSHIFT OP_BIT_RSHIFT NOT_OP
 %token OPEN_ROUND_PAR CLOSED_ROUND_PAR OPEN_RECTANGLE_PAR CLOSED_RECTANGLE_PAR
@@ -52,14 +51,12 @@
 
 %type <Str> type_specifier
 %type <Params> func_params
-%type <node> expression expression_base
-%type <node> func_call
-%type <Args> call_args
-%type <node> statement
-%type <node> statement_list statement_block
-%type <node> print_stmt
-%type <node> assignment lvalue
-%type <node> constructor_decl variable_decl
+%type <node> expression
+%type < node >  func_call
+%type < params_type > call_args
+%type < node > assignment 
+%type < node > statement
+%type < node > print_stmt
 
 %right ASSIGN_OP
 %left OP_OR
@@ -83,6 +80,7 @@
 program:
     { 
         currentScope = globalScope = new SymbolTable("Global"); 
+        //Data data(TYPE::INT , 10);
         yylineno = 1;
     } global_declarations main_block
 ;
@@ -107,8 +105,6 @@ class_decl:
         currentScope->addVar("class", *$3, "class", nullptr);
         currentScope = new SymbolTable(*$3, currentScope);
         classes[*$3] = currentScope;
-        
-        SymbolTable::addClass(*$3, currentScope);
     }
     OPEN_CURLY_BRACE class_body CLOSED_CURLY_BRACE
     { 
@@ -117,27 +113,30 @@ class_decl:
 ;
 
 class_body:
+    /* gol */
     | class_body field_decl
     | class_body method_decl
     | class_body constructor_decl
 ;
 
 constructor_decl:
-    KEYWORD_DEFINE KEYWORD_FUNC ID
+    KEYWORD_DEFINE KEYWORD_CONSTR ID OPEN_ROUND_PAR func_params CLOSED_ROUND_PAR
     {
-         if (*$3 != currentScope->get_scope_name()) {
-             std::cout << yylineno << ": Constructor name " << *$3 << " must match class name " << currentScope->get_scope_name() << std::endl;
+        if (*$3 != currentScope->get_scope_name()) {
+             std::cout << yylineno << ": " << "Constructor name must match class name: " << *$3;
              exit(1);
-         }
-         
-         currentScope->addVar("void", "constructor", "function", nullptr, nullptr); 
-         currentScope = new SymbolTable("constructor", currentScope);
+        }
+        currentScope->addVar("VOID", *$3, "constructor", $5);
+        currentScope = new SymbolTable(*$3, currentScope);
+        if ($5) {
+           for (const auto& param : *$5) {
+               currentScope->addVar(param.type, param.name, "param", nullptr);
+           }
+        }
     }
-    statement_block 
+    function_body
     {
         currentScope = currentScope->getParent();
-        IdInfo* ctor = currentScope->lookup("constructor");
-        if (ctor) ctor->body = $5;
     }
 ;
 
@@ -159,16 +158,9 @@ method_decl:
            }
         }
     }
-    statement_block
+    function_body 
     { 
-        SymbolTable* funcScope = currentScope;
         currentScope = currentScope->getParent();
-        
-        IdInfo* func = currentScope->lookup(*$4);
-        if (func) {
-             func->body = $9;
-             func->scope = funcScope;
-        }
     }
 ;
 
@@ -183,16 +175,9 @@ func_decl:
            }
         }
     }
-    statement_block
+    function_body 
     { 
-        SymbolTable* funcScope = currentScope;
         currentScope = currentScope->getParent();
-        
-        IdInfo* func = currentScope->lookup(*$4);
-        if (func) {
-             func->body = $9;
-             func->scope = funcScope;
-        }
     }
 ;
 
@@ -218,26 +203,31 @@ main_block:
     }
     statement_block
     { 
-        if ($3) $3->evaluate();
-        
         currentScope = currentScope->getParent();
     }
 ;
 
 
+function_body:
+    OPEN_CURLY_BRACE function_item_list CLOSED_CURLY_BRACE
+;
+
+function_item_list:
+    | function_item_list function_item
+;
+
+function_item:
+    variable_decl
+    | statement
+;
+
 statement_block:
-    OPEN_CURLY_BRACE statement_list CLOSED_CURLY_BRACE { $$ = $2; }
+    OPEN_CURLY_BRACE statement_list CLOSED_CURLY_BRACE
 ;
 
 statement_list:
-    { $$ = nullptr; }
     | statement_list statement
-    {
-        if ($1 == nullptr) $$ = $2;
-        else $$ = new ASTnode($1, Data(TYPE::CHAR, OP::SEQ_), $2, new std::string("VOID"));
-    }
 ;
-
 
 
 
@@ -245,114 +235,106 @@ variable_decl:
     KEYWORD_DEFINE type_specifier ID SEMICOLON
     { 
         currentScope->addVar(*$2, *$3, "variable", nullptr);
-        ASTnode* typeNode = new ASTnode(nullptr, Data(TYPE::STRING, new std::string(*$2)), nullptr, new std::string("STRING"));
-        ASTnode* nameNode = new ASTnode(nullptr, Data(TYPE::STRING, new std::string(*$3)), nullptr, new std::string("STRING"));
-        $$ = new ASTnode(typeNode, Data(TYPE::CHAR, OP::DECL_), nameNode, new std::string("VOID"));
-    }
-    | KEYWORD_DEFINE type_specifier ID COMMA ID SEMICOLON
-    {
-         currentScope->addVar(*$2, *$3, "variable", nullptr);
-         currentScope->addVar(*$2, *$5, "variable", nullptr);
-         
-         ASTnode* typeNode = new ASTnode(nullptr, Data(TYPE::STRING, new std::string(*$2)), nullptr, new std::string("STRING"));
-         ASTnode* name1 = new ASTnode(typeNode, Data(TYPE::CHAR, OP::DECL_), new ASTnode(nullptr, Data(TYPE::STRING, new std::string(*$3)), nullptr, new std::string("STRING")), new std::string("VOID"));
-         ASTnode* name2 = new ASTnode(typeNode, Data(TYPE::CHAR, OP::DECL_), new ASTnode(nullptr, Data(TYPE::STRING, new std::string(*$5)), nullptr, new std::string("STRING")), new std::string("VOID"));
-         $$ = new ASTnode(name1, Data(TYPE::CHAR, OP::SEQ_), name2, new std::string("VOID"));
     }
 ;
+
+
 
 statement:
-    assignment SEMICOLON { $$ = $1; }
-    | variable_decl { $$ = $1; } 
-    | KEYWORD_IF expression KEYWORD_THEN statement_block 
+    assignment SEMICOLON
     {
-         $$ = nullptr; 
+        if(currentScope -> get_scope_name() == "main")
+        {
+            $1 -> evaluate();
+        }
+
+        $$ = $1;
     }
-    | KEYWORD_IF expression KEYWORD_THEN statement_block KEYWORD_IF KEYWORD_THEN statement_block { $$ = nullptr; } 
-    
+    | KEYWORD_IF expression KEYWORD_THEN statement_block {$$ = nullptr;}
     | KEYWORD_WHILE expression statement_block {$$ = nullptr;}
     | KEYWORD_FOR assignment SEMICOLON expression SEMICOLON assignment statement_block {$$ = nullptr;}
-    | KEYWORD_RETURN expression SEMICOLON 
+    | KEYWORD_RETURN expression SEMICOLON {$$ = nullptr;}
+    | print_stmt 
     {
-        SymbolTable* scope = currentScope;
-        IdInfo* funcInfo = nullptr;
-        if (scope->getParent()) {
-            funcInfo = scope->getParent()->lookup(scope->get_scope_name());
+        if(currentScope -> get_scope_name() == "main")
+        {
+            Data print_result = $1 -> evaluate();
+
+            if(print_result.type == INT) std::cout << print_result.get_int() << '\n';
+            if(print_result.type == FLOAT) std::cout << print_result.get_float() << '\n';
+            if(print_result.type == STRING) std::cout << *print_result.get_string() << '\n';
+            if(print_result.type == BOOL) std::cout << print_result.get_bool() << '\n';
         }
         
-        if (funcInfo && funcInfo->category == "function") {
-             std::string retType = funcInfo->return_type;
-             std::string exprType = $2->get_type();
-             
-             if (retType == "VOID" || retType == "void") {
-                 std::cout << yylineno << ": Void function '" << funcInfo->name << "' cannot return a value." << std::endl;
-                 exit(1);
-             }
-             
-             if (retType != exprType) {
-                  std::cout << yylineno << ": Return type mismatch in function '" << funcInfo->name << "'. Expected " << retType << ", got " << exprType << std::endl;
-                  exit(1);
-             }
-        }
-        
-        $$ = new ASTnode($2, Data(TYPE::CHAR, OP::RET_), nullptr, $2->get_type_ptr());
+        $$ = $1;
     }
-    | print_stmt { $$ = $1; }
-    | func_call SEMICOLON { $$ = $1; }
-    | statement_block { $$ = $1; }
+    | func_call SEMICOLON {$$ = nullptr;}
+    | statement_block {$$ = nullptr;}
 ;
 
-lvalue:
-    ID
+assignment:
+    ID ASSIGN_OP expression
     {
         IdInfo *id_info = currentScope -> lookup(*$1);
+
         if(id_info == nullptr)
         {
             std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
             exit(1);
         }
-        $$ = new ASTnode(nullptr , Data(TYPE::ID_INFO , id_info) , nullptr , new std::string(id_info -> type));
-    }
-    | lvalue DOT ID
-    {
-        ASTnode* left = $1;
-        std::string type = left->get_type();
-        
-        SymbolTable *class_scope = SymbolTable::class_lookup(type, classes);
-        if (class_scope == nullptr) {
-            std::cout << yylineno << ": Type " << type << " is not a class" << std::endl;
-            exit(1);
-        }
-        
-        IdInfo *member = class_scope->lookup(*$3);
-        if(member == nullptr)
-        {
-            std::cout << yylineno << ": " << "Class " << type << ' ' << "does not have member: " << *$3;
-            exit(1);
-        }
-        
-        ASTnode* memberNode = new ASTnode(nullptr, Data(TYPE::STRING, new std::string(*$3)), nullptr, new std::string("STRING"));
-        $$ = new ASTnode(left, Data(TYPE::CHAR, OP::DOT_), memberNode, new std::string(member->type));
-    }
-;
 
-assignment:
-    lvalue ASSIGN_OP expression
-    {
-        std::string ltype = $1->get_type();
-        std::string rtype = $3->get_type();
-        
-        
-        if (ltype != rtype) {
-             if(!(ltype == "BOOL" && rtype == "INT")) {
-                 if (rtype != "VOID") {
-                    std::cout << yylineno << ": Type mismatch in assignment: '" << ltype << "' = '" << rtype << "'" << std::endl;
-                    exit(1);
-                 }
-             }
+        if(id_info -> type != $3 -> get_type())
+        {
+            if(!(id_info -> type == "BOOL" && $3 -> get_type() == "INT"))
+            {
+                std::cout << yylineno << ": " << "Casting not allowed between " << id_info -> type << " and " << $3 -> get_type();
+                exit(1);
+            }
         }
+
+        ASTnode *id_astnode = new ASTnode(nullptr , Data(TYPE::ID_INFO , id_info) , nullptr , $3 -> get_type_ptr());
+        $$ = new ASTnode(id_astnode , Data(TYPE::CHAR , ASSIGN_) , $3 , $3 -> get_type_ptr());
+    }
+    | ID DOT ID ASSIGN_OP expression
+    {
+        IdInfo *id_info = currentScope -> lookup(*$1);
         
-        $$ = new ASTnode($1, Data(TYPE::CHAR, ASSIGN_), $3, new std::string(ltype));
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
+            exit(1);
+        }
+
+        IdInfo *id_class = globalScope -> lookup(id_info -> type);
+
+        if(id_class == nullptr)
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+        else if(id_class -> category != "class")
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+
+        SymbolTable *class_scope = SymbolTable::class_lookup(id_info -> type , classes);
+        IdInfo *submember = class_scope -> lookup(*$3);
+
+        if(submember == nullptr)
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have member: " << *$3;
+            exit(1);
+        }
+
+        if(submember -> type != $5 -> get_type())
+        {
+            std::cout << yylineno << ": " << "Casting not allowed between " << submember -> type << " and " << $5 -> get_type();
+            exit(1);
+        }
+
+        ASTnode *id_astnode = new ASTnode(nullptr , Data(TYPE::ID_INFO , submember) , nullptr , $5 -> get_type_ptr());
+        $$ = new ASTnode(id_astnode , Data(TYPE::CHAR , ASSIGN_) , $5 , $5 -> get_type_ptr());
     }
 ;
 
@@ -365,155 +347,275 @@ print_stmt:
 
 func_call:
     ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR
-    { 
+    {
         IdInfo *id_info = currentScope -> lookup(*$1);
-        bool is_constructor = false;
-        
-        if (id_info && id_info->category == "class") {
-            is_constructor = true;
-        } else if (id_info == nullptr) {
-            if (SymbolTable::getClass(*$1)) is_constructor = true;
-            else {
-                 std::cout << yylineno << ": " << "Function or Class '" << *$1 << "' does not exist";
-                 exit(1);
-            }
-        }
-        
-        if(is_constructor)
+
+        if(id_info == nullptr)
         {
-             SymbolTable* classScope = SymbolTable::getClass(*$1);
-             if (!classScope) {
-                  std::cout << yylineno << ": " << "Class '" << *$1 << "' not found";
-                  exit(1);
+            std::cout << yylineno << ": " << "Function: " << *$1 << " does not exist";
+            exit(1);
+        }
+
+        if (id_info->category == "class") {
+             SymbolTable *class_scope = SymbolTable::class_lookup(*$1, classes);
+             IdInfo *constr = class_scope->lookup(*$1);
+             
+             if (constr != nullptr && constr->category == "constructor") {
+                  check_func_parameters(*$1, constr->param, *$3);
+             } else {
+                  if ($3->size() > 0) {
+                       std::cout << yylineno << ": " << "No matching constructor for class " << *$1;
+                       exit(1);
+                  }
              }
-             ASTnode* classNameNode = new ASTnode(nullptr, Data(TYPE::STRING, new std::string(*$1)), nullptr, new std::string("STRING"));
-             $$ = new ASTnode(classNameNode, Data(TYPE::CHAR, OP::NEW_), nullptr, new std::string(*$1));
+             $$ = new ASTnode(nullptr, Data(TYPE::INT, 0), nullptr, new std::string(*$1));
         } else {
-             std::vector<std::string> argTypes;
-             for (auto arg : *$3) {
-                 argTypes.push_back(arg->get_type());
-             }
-             check_func_parameters(*$1 , id_info -> param , argTypes);
-             
-             ASTnode* argsTree = nullptr;
-             if ($3->size() > 0) {
-                 for (int i = $3->size() - 1; i >= 0; --i) {
-                     ASTnode* arg = (*$3)[i];
-                     argsTree = new ASTnode(arg, Data(TYPE::CHAR, OP::SEQ_), argsTree, new std::string("ARGS"));
-                 }
-             }
-             
-             ASTnode* funcNode = new ASTnode(nullptr, Data(TYPE::ID_INFO, id_info), nullptr, new std::string(id_info->type));
-             $$ = new ASTnode(funcNode, Data(TYPE::CHAR, OP::CALL_), argsTree, new std::string(id_info->return_type));
+             check_func_parameters(*$1 , id_info -> param , *$3);
+             $$ = new ASTnode(nullptr, Data(TYPE::INT, 0), nullptr, new std::string(id_info->return_type));
         }
     }
-    | lvalue DOT ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR
+    | ID DOT ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR
     {
-        ASTnode* obj = $1;
-        std::string objType = obj->get_type();
-        SymbolTable* cls = SymbolTable::getClass(objType);
-        IdInfo* method = cls->lookup(*$3);
+        IdInfo *id_info = currentScope -> lookup(*$1);
         
-        std::vector<std::string> argTypes;
-        for (auto arg : *$5) argTypes.push_back(arg->get_type());
-        check_func_parameters(*$3, method->param, argTypes);
-        
-        ASTnode* memberNode = new ASTnode(nullptr, Data(TYPE::STRING, new std::string(*$3)), nullptr, new std::string("STRING"));
-        ASTnode* dotNode = new ASTnode(obj, Data(TYPE::CHAR, OP::DOT_), memberNode, new std::string(method->type));
-        
-        ASTnode* argsTree = nullptr;
-         if ($5->size() > 0) {
-             for (int i = $5->size() - 1; i >= 0; --i) {
-                 ASTnode* arg = (*$5)[i];
-                 argsTree = new ASTnode(arg, Data(TYPE::CHAR, OP::SEQ_), argsTree, new std::string("ARGS"));
-             }
-         }
-         
-        $$ = new ASTnode(dotNode, Data(TYPE::CHAR, OP::CALL_), argsTree, new std::string(method->return_type));
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
+            exit(1);
+        }
+
+        IdInfo *id_class = globalScope -> lookup(id_info -> type);
+
+        if(id_class == nullptr)
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+        else if(id_class -> category != "class")
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+
+        SymbolTable *class_scope = SymbolTable::class_lookup(id_info -> type , classes);
+        IdInfo *submember = class_scope -> lookup(*$3);
+
+        if(submember == nullptr)
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have member: " << *$3;
+            exit(1);
+        }
+        else if(submember -> category != "function")
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have function called: " << *$3;
+        }
+
+
+        check_func_parameters(*$3 , submember -> param , *$5);
+        $$ = new ASTnode(nullptr, Data(TYPE::INT, 0), nullptr, new std::string(submember->return_type));
     }
 ;
 
 call_args:
     {
-        $$ = new std::vector<ASTnode*>();
+        std::vector < std::string > *result = new std::vector < std::string >;
+        $$ = result;
     }
-    | expression_base
+    |
+    expression 
     {
-        $$ = new std::vector<ASTnode*>();
-        $$->push_back($1);
+        std::vector < std::string > *result = new std::vector < std::string >;
+        result -> push_back($1 -> get_type());
+        $$ = result;
     }
-    | call_args COMMA expression_base
+    | call_args COMMA expression
     {
-        $$ = $1;
-        $$->push_back($3);
+        std::vector < std::string > *result = $1;
+        result -> push_back($3 -> get_type());
+        $$ = result;
     }
 ;
 
 expression:
-    expression_base { $$ = $1; }
-;
-
-expression_base:
-      expression_base ADD_OP expression_base
+    expression ADD_OP expression
     {
         check_matching_types($1 -> get_type() , $3 -> get_type());
         $$ = new ASTnode($1 , Data(TYPE::CHAR , OP::ADD_) , $3 , $1 -> get_type_ptr());
     }
-    | expression_base SUB_OP expression_base
+    | expression SUB_OP expression
     {
-         check_matching_types($1 -> get_type() , $3 -> get_type());
+        check_matching_types($1 -> get_type() , $3 -> get_type());
         $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::SUB_) , $3 , $1 -> get_type_ptr());
     }
-    | expression_base MUL_OP expression_base
+    | expression MUL_OP expression
     {
         check_matching_types($1 -> get_type() , $3 -> get_type());
         $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::MUL_) , $3 , $1 -> get_type_ptr());
     }
-    | expression_base DIV_OP expression_base
+    | expression DIV_OP expression
     {
         check_matching_types($1 -> get_type() , $3 -> get_type());
         $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::DIV_) , $3 , $1 -> get_type_ptr());
     }
-    | expression_base OP_AND expression_base
+    | expression OP_AND expression
     {
         check_matching_types($1 -> get_type() , $3 -> get_type());
         $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_AND) , $3 , $1 -> get_type_ptr());
     }
-    | expression_base OP_OR expression_base
+    | expression OP_OR expression
     {
         check_matching_types($1 -> get_type() , $3 -> get_type());
         $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_OR) , $3 , $1 -> get_type_ptr());
     }
-    | expression_base LT_OP expression_base
+    | expression OP_BIT_OR expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_BIT_OR) , $3 , $1 -> get_type_ptr());
+    }
+    | expression OP_BIT_XOR expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_BIT_XOR) , $3 , $1 -> get_type_ptr());
+    }
+    | expression OP_BIT_AND expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_BIT_AND) , $3 , $1 -> get_type_ptr());
+    }
+    | expression OP_BIT_LSHIFT expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_BIT_LSHIFT) , $3 , $1 -> get_type_ptr());
+    }
+    | expression OP_BIT_RSHIFT expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::_BIT_RSHIFT) , $3 , $1 -> get_type_ptr());
+    }
+    | expression MOD_OP expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::MOD_) , $3 , $1 -> get_type_ptr());
+    }
+    | expression LT_OP expression
     {
         check_matching_types($1 -> get_type() , $3 -> get_type());
         $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::LT_) , $3 , new std::string("BOOL"));
     }
-    | expression_base GT_OP expression_base
+    | expression GT_OP expression
     {
         check_matching_types($1 -> get_type() , $3 -> get_type());
         $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::GT_) , $3 , new std::string("BOOL"));
     }
-    | expression_base EQ_OP expression_base 
+    | expression LEQ_OP expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::LEQ_) , $3 , new std::string("BOOL"));
+    }
+    | expression GEQ_OP expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::GEQ_) , $3 , new std::string("BOOL"));
+    }
+    | expression NEQ_OP expression
+    {
+        check_matching_types($1 -> get_type() , $3 -> get_type());
+        $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::NEQ_) , $3 , new std::string("BOOL"));
+    }
+    | expression EQ_OP expression 
     {
         check_matching_types($1 -> get_type() , $3 -> get_type());
         $$ = new ASTnode($1 , Data(TYPE::CHAR, OP::EQ_) , $3 , new std::string("BOOL"));
     }
-    | OPEN_ROUND_PAR expression_base CLOSED_ROUND_PAR {$$ = $2;}
-    | lvalue { $$ = $1; } 
-    | func_call { $$ = $1; }
+    | OPEN_ROUND_PAR expression CLOSED_ROUND_PAR {$$ = $2;}
+    | ID 
+    {
+        IdInfo *id_info = currentScope -> lookup(*$1);
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
+            exit(1);
+        }
+
+        $$ = new ASTnode(nullptr , Data(TYPE::ID_INFO , id_info) , nullptr , new std::string(id_info -> type));
+    }
+    | DOLLA_SIGN ID 
+    {
+        IdInfo *id_info = currentScope -> lookup(*$2);
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$2;
+            exit(1);
+        }
+
+        if(id_info -> category != "param")
+        {
+            std::cout << yylineno << ": " << "Variable not a parameter: " << *$2;
+            exit(1);
+        }
+
+        $$ = new ASTnode(nullptr , Data(TYPE::ID_INFO , id_info) , nullptr , new std::string(id_info -> type));
+    }
     | INT_CONST {$$ = new ASTnode(nullptr , Data(TYPE::INT , $1) , nullptr , new std::string("INT"));}
     | BOOL_CONST {$$ = new ASTnode(nullptr , Data(TYPE::BOOL , (bool)$1) , nullptr , new std::string("BOOL"));}
     | FLOAT_CONST {$$ = new ASTnode(nullptr , Data(TYPE::FLOAT , $1) , nullptr , new std::string("FLOAT"));}
     | STRING_CONST {$$ = new ASTnode(nullptr , Data(TYPE::STRING , $1) , nullptr , new std::string("STRING"));}
-    
-    | NOT_OP expression_base
+    | func_call {$$ = $1;}
+    | ID DOT ID 
     {
+        IdInfo *id_info = currentScope -> lookup(*$1);
+        
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
+            exit(1);
+        }
+
+        IdInfo *id_class = globalScope -> lookup(id_info -> type);
+
+        if(id_class == nullptr)
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+        else if(id_class -> category != "class")
+        {
+            std::cout << yylineno << ": " << "Type not a class: " << id_info -> type;
+            exit(1);
+        }
+
+        SymbolTable *class_scope = SymbolTable::class_lookup(id_info -> type , classes);
+        IdInfo *submember = class_scope -> lookup(*$3);
+
+        if(submember == nullptr)
+        {
+            std::cout << yylineno << ": " << "Class " << id_info -> type << ' ' << "does not have member: " << *$3;
+            exit(1);
+        }
+
+       // $$ = new std::string(submember -> type);
+        $$ = new ASTnode(nullptr , Data(TYPE::ID_INFO , submember) , nullptr , new std::string(submember -> type));
+
+    }
+    | NOT_OP expression 
+    {
+        if ($2->get_type() != "BOOL")
+        {
+             std::cout << yylineno << ": " << "Type mismatch: NOT operator requires BOOL, got " << $2->get_type();
+             exit(1);
+        }
         $$ = new ASTnode($2 , Data(TYPE::CHAR, OP::NOT_) , nullptr , new std::string("BOOL"));
     }
-    | SUB_OP expression_base %prec UMINUS
+    | SUB_OP expression %prec UMINUS
     {
-         $$ = new ASTnode($2 , Data(TYPE::CHAR, OP::UMINUS_) , nullptr , $2->get_type_ptr());
+        if ($2->get_type() != "INT" && $2->get_type() != "FLOAT")
+        {
+             std::cout << yylineno << ": " << "Type mismatch: Unary Minus operator requires INT or FLOAT, got " << $2->get_type();
+             exit(1);
+        }
+        $$ = new ASTnode($2 , Data(TYPE::CHAR, OP::UMINUS_) , nullptr , $2->get_type_ptr());
     }
 ;
 
@@ -522,28 +624,36 @@ type_specifier:
     | ID 
     {
         SymbolTable *class_scope = SymbolTable::class_lookup(*$1 , classes);
-        if(class_scope == nullptr && *$1 != "INT" && *$1 != "FLOAT" && *$1 != "STRING" && *$1 != "BOOL" && *$1 != "VOID" && *$1 != "STR")
+       
+        if(class_scope == nullptr && *$1 != "INT" && *$1 != "FLOAT" && *$1 != "STRING" && *$1 != "BOOL")
         {
-             
             std::cout << yylineno << ": " << "Invalid type declared: " << *$1 << '\n';
             exit(1);
         } 
-        if (*$1 == "STR") $$ = new std::string("STRING");
-        else $$ = $1; 
+
+        $$ = $1; 
     }
 ;
 
 %%
 
-extern char* yytext;
 void yyerror(const char *s) {
-    std::cerr << "Syntax Error at line " << yylineno << ": " << s << " at token '" << yytext << "'" << std::endl;
+    std::cerr << "Syntax Error at line " << yylineno << ": " << s << std::endl;
     exit(1);
 }
 
 int main() {
+    // yydebug = 1; 
     if (yyparse() == 0) {
         std::cout << "Parsing successful!" << std::endl;
+        
+        std::ofstream outFile("tables.txt");
+        const auto& tables = SymbolTable::getAllTables();
+        for (auto table : tables) {
+            table->print(outFile);
+        }
+        outFile.close();
+        std::cout << "Symbol tables written to tables.txt" << std::endl;
     }
     return 0;
 }

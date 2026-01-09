@@ -1,39 +1,64 @@
 === Scope: Global (Global) ===
-  Name: FileManager | Type: class | Category: class
-  Name: f | Type: INT | Category: function | Params: (INT x, FLOAT y, INT z)
-  Name: fl | Type: FileManager | Category: variable
-  Name: t | Type: INT | Category: variable
-  Name: y | Type: BOOL | Category: variable
-================================
-
-=== Scope: FileManager (Parent: Global) ===
-  Name: constructor | Type: void | Category: function
-  Name: filePath | Type: STRING | Category: field
-  Name: maxFileSize | Type: INT | Category: field
-  Name: openFile | Type: INT | Category: function | Params: (INT fileId)
-================================
-
-=== Scope: openFile (Parent: FileManager) ===
-  Name: chestie | Type: INT | Category: variable
-  Name: fileId | Type: INT | Category: param
-================================
-
-=== Scope: constructor (Parent: FileManager) ===
+  Name: A | Type: class | Category: class
+  Name: B | Type: class | Category: class
+  Name: b1 | Type: BOOL | Category: variable
+  Name: b2 | Type: BOOL | Category: variable
+  Name: bfunc | Type: STRING | Category: function | Params: (BOOL b, STRING s)
+  Name: f | Type: INT | Category: function | Params: (INT z)
+  Name: fx | Type: FLOAT | Category: variable
+  Name: ix | Type: INT | Category: variable
+  Name: oba | Type: A | Category: variable
+  Name: obb | Type: B | Category: variable
   Name: s | Type: STRING | Category: variable
 ================================
 
-=== Scope: f (Parent: Global) ===
-  Name: r | Type: FileManager | Category: variable
-  Name: x | Type: INT | Category: param
-  Name: y | Type: FLOAT | Category: param
+=== Scope: A (Parent: Global) ===
+  Name: A | Type: VOID | Category: constructor
+  Name: g | Type: INT | Category: function | Params: (INT z)
+  Name: x | Type: INT | Category: field
+  Name: y | Type: INT | Category: field
+================================
+
+=== Scope: A (Parent: A) ===
+================================
+
+=== Scope: g (Parent: A) ===
   Name: z | Type: INT | Category: param
 ================================
 
-=== Scope: main (Parent: Global) ===
+=== Scope: f (Parent: Global) ===
+  Name: b | Type: INT | Category: variable
+  Name: flag | Type: BOOL | Category: variable
+  Name: x | Type: INT | Category: variable
+  Name: z | Type: INT | Category: param
 ================================
 
-=== Scope: FileManager (Parent: FileManager) ===
-  Name: filePath | Type: STRING | Category: field
-  Name: maxFileSize | Type: INT | Category: field
+=== Scope: B (Parent: Global) ===
+  Name: B | Type: VOID | Category: constructor
+  Name: b | Type: INT | Category: field
+  Name: bb | Type: INT | Category: field
+  Name: f | Type: INT | Category: function | Params: (INT z)
+  Name: g | Type: INT | Category: function | Params: (INT z)
+================================
+
+=== Scope: B (Parent: B) ===
+================================
+
+=== Scope: g (Parent: B) ===
+  Name: a | Type: A | Category: variable
+  Name: x | Type: INT | Category: variable
+  Name: z | Type: INT | Category: param
+================================
+
+=== Scope: f (Parent: B) ===
+  Name: z | Type: INT | Category: param
+================================
+
+=== Scope: bfunc (Parent: Global) ===
+  Name: b | Type: BOOL | Category: param
+  Name: s | Type: STRING | Category: param
+================================
+
+=== Scope: main (Parent: Global) ===
 ================================
 

@@ -82,37 +82,38 @@ extern int yydebug;
     KEYWORD_PRINT = 271,           /* KEYWORD_PRINT  */
     KEYWORD_DEFINE = 272,          /* KEYWORD_DEFINE  */
     KEYWORD_THEN = 273,            /* KEYWORD_THEN  */
-    ADD_OP = 274,                  /* ADD_OP  */
-    SUB_OP = 275,                  /* SUB_OP  */
-    MUL_OP = 276,                  /* MUL_OP  */
-    DIV_OP = 277,                  /* DIV_OP  */
-    ASSIGN_OP = 278,               /* ASSIGN_OP  */
-    MOD_OP = 279,                  /* MOD_OP  */
-    EQ_OP = 280,                   /* EQ_OP  */
-    NEQ_OP = 281,                  /* NEQ_OP  */
-    LT_OP = 282,                   /* LT_OP  */
-    GT_OP = 283,                   /* GT_OP  */
-    GEQ_OP = 284,                  /* GEQ_OP  */
-    LEQ_OP = 285,                  /* LEQ_OP  */
-    OP_AND = 286,                  /* OP_AND  */
-    OP_OR = 287,                   /* OP_OR  */
-    OP_BIT_AND = 288,              /* OP_BIT_AND  */
-    OP_BIT_OR = 289,               /* OP_BIT_OR  */
-    OP_BIT_XOR = 290,              /* OP_BIT_XOR  */
-    OP_BIT_LSHIFT = 291,           /* OP_BIT_LSHIFT  */
-    OP_BIT_RSHIFT = 292,           /* OP_BIT_RSHIFT  */
-    NOT_OP = 293,                  /* NOT_OP  */
-    OPEN_ROUND_PAR = 294,          /* OPEN_ROUND_PAR  */
-    CLOSED_ROUND_PAR = 295,        /* CLOSED_ROUND_PAR  */
-    OPEN_RECTANGLE_PAR = 296,      /* OPEN_RECTANGLE_PAR  */
-    CLOSED_RECTANGLE_PAR = 297,    /* CLOSED_RECTANGLE_PAR  */
-    OPEN_CURLY_BRACE = 298,        /* OPEN_CURLY_BRACE  */
-    CLOSED_CURLY_BRACE = 299,      /* CLOSED_CURLY_BRACE  */
-    SEMICOLON = 300,               /* SEMICOLON  */
-    DOT = 301,                     /* DOT  */
-    COMMA = 302,                   /* COMMA  */
-    DOLLA_SIGN = 303,              /* DOLLA_SIGN  */
-    UMINUS = 304                   /* UMINUS  */
+    KEYWORD_CONSTR = 274,          /* KEYWORD_CONSTR  */
+    ADD_OP = 275,                  /* ADD_OP  */
+    SUB_OP = 276,                  /* SUB_OP  */
+    MUL_OP = 277,                  /* MUL_OP  */
+    DIV_OP = 278,                  /* DIV_OP  */
+    ASSIGN_OP = 279,               /* ASSIGN_OP  */
+    MOD_OP = 280,                  /* MOD_OP  */
+    EQ_OP = 281,                   /* EQ_OP  */
+    NEQ_OP = 282,                  /* NEQ_OP  */
+    LT_OP = 283,                   /* LT_OP  */
+    GT_OP = 284,                   /* GT_OP  */
+    GEQ_OP = 285,                  /* GEQ_OP  */
+    LEQ_OP = 286,                  /* LEQ_OP  */
+    OP_AND = 287,                  /* OP_AND  */
+    OP_OR = 288,                   /* OP_OR  */
+    OP_BIT_AND = 289,              /* OP_BIT_AND  */
+    OP_BIT_OR = 290,               /* OP_BIT_OR  */
+    OP_BIT_XOR = 291,              /* OP_BIT_XOR  */
+    OP_BIT_LSHIFT = 292,           /* OP_BIT_LSHIFT  */
+    OP_BIT_RSHIFT = 293,           /* OP_BIT_RSHIFT  */
+    NOT_OP = 294,                  /* NOT_OP  */
+    OPEN_ROUND_PAR = 295,          /* OPEN_ROUND_PAR  */
+    CLOSED_ROUND_PAR = 296,        /* CLOSED_ROUND_PAR  */
+    OPEN_RECTANGLE_PAR = 297,      /* OPEN_RECTANGLE_PAR  */
+    CLOSED_RECTANGLE_PAR = 298,    /* CLOSED_RECTANGLE_PAR  */
+    OPEN_CURLY_BRACE = 299,        /* OPEN_CURLY_BRACE  */
+    CLOSED_CURLY_BRACE = 300,      /* CLOSED_CURLY_BRACE  */
+    SEMICOLON = 301,               /* SEMICOLON  */
+    DOT = 302,                     /* DOT  */
+    COMMA = 303,                   /* COMMA  */
+    DOLLA_SIGN = 304,              /* DOLLA_SIGN  */
+    UMINUS = 305                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -121,16 +122,16 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 33 "parser.ypp"
+#line 32 "parser.ypp"
 
     int val_int;
     float val_float;
     std::string* Str;
     std::vector<ParamInfo>* Params;
-    std::vector < ASTnode* > *Args;
+    std::vector < std::string > *params_type;
     ASTnode *node;
 
-#line 134 "parser.tab.hpp"
+#line 135 "parser.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -13,28 +13,18 @@ define class FileManager {
         }
         return -1;
     }
-
-    define func FileManager {
-        define STR s;
-        s = "this is constructor";
-    }
 }
 
 define func INT f(INT $x , FLOAT $y , INT $z) 
 {
     define FileManager r;
-    r = FileManager();
-    return 0;
 }
 
 define INT t;
 define BOOL y;
-define FileManager fl;
-
 main {
     t = 10;
     t = -1 * 10;
     y = true;
-    fl = FileManager();
-    Print(!(!(t!=10)));
+    Print(!(!(t!=-10)));
 }

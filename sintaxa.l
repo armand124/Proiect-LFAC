@@ -25,6 +25,7 @@ LETTER [a-zA-Z]
 "return" {return KEYWORD_RETURN;}
 "for" {return KEYWORD_FOR;}
 "Print" { return KEYWORD_PRINT; }
+"constr" { return KEYWORD_CONSTR; }
 "true" { yylval.val_int = 1; return BOOL_CONST; }
 "false" { yylval.val_int = 0; return BOOL_CONST; }
 
