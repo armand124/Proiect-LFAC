@@ -95,25 +95,26 @@ extern int yydebug;
     GT_OP = 284,                   /* GT_OP  */
     GEQ_OP = 285,                  /* GEQ_OP  */
     LEQ_OP = 286,                  /* LEQ_OP  */
-    OP_AND = 287,                  /* OP_AND  */
-    OP_OR = 288,                   /* OP_OR  */
-    OP_BIT_AND = 289,              /* OP_BIT_AND  */
-    OP_BIT_OR = 290,               /* OP_BIT_OR  */
-    OP_BIT_XOR = 291,              /* OP_BIT_XOR  */
-    OP_BIT_LSHIFT = 292,           /* OP_BIT_LSHIFT  */
-    OP_BIT_RSHIFT = 293,           /* OP_BIT_RSHIFT  */
-    NOT_OP = 294,                  /* NOT_OP  */
-    OPEN_ROUND_PAR = 295,          /* OPEN_ROUND_PAR  */
-    CLOSED_ROUND_PAR = 296,        /* CLOSED_ROUND_PAR  */
-    OPEN_RECTANGLE_PAR = 297,      /* OPEN_RECTANGLE_PAR  */
-    CLOSED_RECTANGLE_PAR = 298,    /* CLOSED_RECTANGLE_PAR  */
-    OPEN_CURLY_BRACE = 299,        /* OPEN_CURLY_BRACE  */
-    CLOSED_CURLY_BRACE = 300,      /* CLOSED_CURLY_BRACE  */
-    SEMICOLON = 301,               /* SEMICOLON  */
-    DOT = 302,                     /* DOT  */
-    COMMA = 303,                   /* COMMA  */
-    DOLLA_SIGN = 304,              /* DOLLA_SIGN  */
-    UMINUS = 305                   /* UMINUS  */
+    ASSIGN_CONSTR = 287,           /* ASSIGN_CONSTR  */
+    OP_AND = 288,                  /* OP_AND  */
+    OP_OR = 289,                   /* OP_OR  */
+    OP_BIT_AND = 290,              /* OP_BIT_AND  */
+    OP_BIT_OR = 291,               /* OP_BIT_OR  */
+    OP_BIT_XOR = 292,              /* OP_BIT_XOR  */
+    OP_BIT_LSHIFT = 293,           /* OP_BIT_LSHIFT  */
+    OP_BIT_RSHIFT = 294,           /* OP_BIT_RSHIFT  */
+    NOT_OP = 295,                  /* NOT_OP  */
+    OPEN_ROUND_PAR = 296,          /* OPEN_ROUND_PAR  */
+    CLOSED_ROUND_PAR = 297,        /* CLOSED_ROUND_PAR  */
+    OPEN_RECTANGLE_PAR = 298,      /* OPEN_RECTANGLE_PAR  */
+    CLOSED_RECTANGLE_PAR = 299,    /* CLOSED_RECTANGLE_PAR  */
+    OPEN_CURLY_BRACE = 300,        /* OPEN_CURLY_BRACE  */
+    CLOSED_CURLY_BRACE = 301,      /* CLOSED_CURLY_BRACE  */
+    SEMICOLON = 302,               /* SEMICOLON  */
+    DOT = 303,                     /* DOT  */
+    COMMA = 304,                   /* COMMA  */
+    DOLLA_SIGN = 305,              /* DOLLA_SIGN  */
+    UMINUS = 306                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -131,7 +132,7 @@ union YYSTYPE
     std::vector < std::string > *params_type;
     ASTnode *node;
 
-#line 135 "parser.tab.hpp"
+#line 136 "parser.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

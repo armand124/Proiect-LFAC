@@ -1,62 +1,58 @@
 === Scope: Global (Global) ===
   Name: A | Type: class | Category: class
-  Name: B | Type: class | Category: class
-  Name: b1 | Type: BOOL | Category: variable
-  Name: b2 | Type: BOOL | Category: variable
-  Name: bfunc | Type: STRING | Category: function | Params: (BOOL b, STRING s)
-  Name: f | Type: INT | Category: function | Params: (INT z)
-  Name: fx | Type: FLOAT | Category: variable
-  Name: ix | Type: INT | Category: variable
-  Name: oba | Type: A | Category: variable
-  Name: obb | Type: B | Category: variable
-  Name: s | Type: STRING | Category: variable
+  Name: Car | Type: class | Category: class
+  Name: c | Type: Car | Category: variable
+  Name: dap | Type: FLOAT | Category: variable
+  Name: dasda | Type: INT | Category: variable
+  Name: e1 | Type: STRING | Category: variable
+  Name: e2 | Type: STRING | Category: variable
+  Name: fulger | Type: Car | Category: variable
+  Name: johny | Type: A | Category: variable
+  Name: l | Type: FLOAT | Category: variable
+  Name: poz | Type: INT | Category: variable
+  Name: ppp | Type: FLOAT | Category: variable
+  Name: r | Type: BOOL | Category: variable
+  Name: t | Type: BOOL | Category: variable
+  Name: x | Type: BOOL | Category: variable
 ================================
 
 === Scope: A (Parent: Global) ===
   Name: A | Type: VOID | Category: constructor
-  Name: g | Type: INT | Category: function | Params: (INT z)
-  Name: x | Type: INT | Category: field
-  Name: y | Type: INT | Category: field
+  Name: a | Type: INT | Category: field
+  Name: b | Type: INT | Category: field
+  Name: f | Type: INT | Category: function | Params: (INT x)
+  Name: g | Type: STRING | Category: function
+  Name: s | Type: STRING | Category: field
 ================================
 
 === Scope: A (Parent: A) ===
 ================================
 
+=== Scope: f (Parent: A) ===
+  Name: x | Type: INT | Category: param
+================================
+
 === Scope: g (Parent: A) ===
-  Name: z | Type: INT | Category: param
 ================================
 
-=== Scope: f (Parent: Global) ===
-  Name: b | Type: INT | Category: variable
-  Name: flag | Type: BOOL | Category: variable
-  Name: x | Type: INT | Category: variable
-  Name: z | Type: INT | Category: param
+=== Scope: Car (Parent: Global) ===
+  Name: Car | Type: VOID | Category: constructor
+  Name: distance | Type: INT | Category: field
+  Name: f | Type: INT | Category: function | Params: (INT x)
+  Name: g | Type: INT | Category: function
+  Name: speed | Type: INT | Category: field
+  Name: time | Type: INT | Category: field
 ================================
 
-=== Scope: B (Parent: Global) ===
-  Name: B | Type: VOID | Category: constructor
-  Name: b | Type: INT | Category: field
-  Name: bb | Type: INT | Category: field
-  Name: f | Type: INT | Category: function | Params: (INT z)
-  Name: g | Type: INT | Category: function | Params: (INT z)
-================================
-
-=== Scope: B (Parent: B) ===
-================================
-
-=== Scope: g (Parent: B) ===
+=== Scope: Car (Parent: Car) ===
   Name: a | Type: A | Category: variable
-  Name: x | Type: INT | Category: variable
-  Name: z | Type: INT | Category: param
 ================================
 
-=== Scope: f (Parent: B) ===
-  Name: z | Type: INT | Category: param
+=== Scope: f (Parent: Car) ===
+  Name: x | Type: INT | Category: param
 ================================
 
-=== Scope: bfunc (Parent: Global) ===
-  Name: b | Type: BOOL | Category: param
-  Name: s | Type: STRING | Category: param
+=== Scope: g (Parent: Car) ===
 ================================
 
 === Scope: main (Parent: Global) ===

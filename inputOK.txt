@@ -14,7 +14,8 @@ define class A {
 
 define func INT f(INT $z) {
     define INT x; define INT b;
-    x = 5; b = 10;
+    x = 5;
+    b = 10;
     define BOOL flag;
     flag = true;
 
@@ -36,7 +37,7 @@ define class B {
     define func INT g(INT $z) {
         define A a;
         define INT x;
-        a = A();
+        a <- A();
         x = 100;
         return x + a.x + z;
     }
@@ -62,7 +63,6 @@ define B obb;
 define A oba;
 
 main {
-    obb = B();
-    Print(obb.b);
-    Print(obb.bb);
+    s = "hello";
+    Print(s);
 }

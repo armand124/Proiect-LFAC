@@ -39,6 +39,7 @@ LETTER [a-zA-Z]
 "==" {return EQ_OP;}
 "IS" {return EQ_OP;}
 "!=" {return NEQ_OP;}
+"<-" {return ASSIGN_CONSTR;}
 "<" {return LT_OP;}
 ">" {return GT_OP;}
 ">=" {return GEQ_OP;}
@@ -86,7 +87,7 @@ LETTER [a-zA-Z]
 [ \t]+    {}
 \n        { yylineno++; }   
 "#".* {}
-. { printf("Eroare Lexicala: Caracter necunoscut: %s\n", yytext); exit(1); }
+. { std::cout<< yylineno << ": " <<"Error: Unknown character:" << yytext << std::endl; exit(1); }
 
 %%
 int yywrap() {

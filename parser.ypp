@@ -44,7 +44,7 @@
 %token <val_float> FLOAT_CONST
 %token <Str> STRING_CONST
 %token KEYWORD_CLASS KEYWORD_FUNC KEYWORD_IF KEYWORD_MAIN KEYWORD_RETURN KEYWORD_WHILE KEYWORD_FOR KEYWORD_PRINT KEYWORD_DEFINE KEYWORD_THEN KEYWORD_CONSTR
-%token ADD_OP SUB_OP MUL_OP DIV_OP ASSIGN_OP MOD_OP EQ_OP NEQ_OP LT_OP GT_OP GEQ_OP LEQ_OP
+%token ADD_OP SUB_OP MUL_OP DIV_OP ASSIGN_OP MOD_OP EQ_OP NEQ_OP LT_OP GT_OP GEQ_OP LEQ_OP ASSIGN_CONSTR
 %token OP_AND OP_OR OP_BIT_AND OP_BIT_OR OP_BIT_XOR OP_BIT_LSHIFT OP_BIT_RSHIFT NOT_OP
 %token OPEN_ROUND_PAR CLOSED_ROUND_PAR OPEN_RECTANGLE_PAR CLOSED_RECTANGLE_PAR
 %token OPEN_CURLY_BRACE CLOSED_CURLY_BRACE SEMICOLON DOT COMMA DOLLA_SIGN
@@ -52,13 +52,13 @@
 %type <Str> type_specifier
 %type <Params> func_params
 %type <node> expression
-%type < node >  func_call
+%type < Str >  func_call
 %type < params_type > call_args
 %type < node > assignment 
 %type < node > statement
 %type < node > print_stmt
 
-%right ASSIGN_OP
+%right ASSIGN_OP ASSIGN_CONSTR
 %left OP_OR
 %left OP_AND
 %left OP_BIT_OR
@@ -336,6 +336,23 @@ assignment:
         ASTnode *id_astnode = new ASTnode(nullptr , Data(TYPE::ID_INFO , submember) , nullptr , $5 -> get_type_ptr());
         $$ = new ASTnode(id_astnode , Data(TYPE::CHAR , ASSIGN_) , $5 , $5 -> get_type_ptr());
     }
+    | ID ASSIGN_CONSTR func_call
+    {
+        IdInfo *id_info = currentScope -> lookup(*$1);
+
+        if(id_info == nullptr)
+        {
+            std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
+            exit(1);
+        }
+
+        if (*$3 != id_info->type) {
+             std::cout << yylineno << ": " << "Type mismatch in constructor assignment. Expected " << id_info->type << " but got " << *$3;
+             exit(1);
+        }
+
+        $$ = nullptr;
+    }
 ;
 
 print_stmt:
@@ -346,14 +363,14 @@ print_stmt:
 ;
 
 func_call:
-    ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR
-    {
+        ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR
+    { 
         IdInfo *id_info = currentScope -> lookup(*$1);
 
         if(id_info == nullptr)
         {
             std::cout << yylineno << ": " << "Function: " << *$1 << " does not exist";
-            exit(1);
+            exit(1); 
         }
 
         if (id_info->category == "class") {
@@ -368,16 +385,16 @@ func_call:
                        exit(1);
                   }
              }
-             $$ = new ASTnode(nullptr, Data(TYPE::INT, 0), nullptr, new std::string(*$1));
+             $$ = new std::string(*$1);
         } else {
              check_func_parameters(*$1 , id_info -> param , *$3);
-             $$ = new ASTnode(nullptr, Data(TYPE::INT, 0), nullptr, new std::string(id_info->return_type));
+             $$ = new std::string(id_info -> return_type);
         }
     }
     | ID DOT ID OPEN_ROUND_PAR call_args CLOSED_ROUND_PAR
     {
         IdInfo *id_info = currentScope -> lookup(*$1);
-        
+
         if(id_info == nullptr)
         {
             std::cout << yylineno << ": " << "Variable not declared in the scope: " << *$1;
@@ -412,7 +429,7 @@ func_call:
 
 
         check_func_parameters(*$3 , submember -> param , *$5);
-        $$ = new ASTnode(nullptr, Data(TYPE::INT, 0), nullptr, new std::string(submember->return_type));
+        $$ = new std::string(submember -> return_type);
     }
 ;
 
@@ -562,7 +579,12 @@ expression:
     | BOOL_CONST {$$ = new ASTnode(nullptr , Data(TYPE::BOOL , (bool)$1) , nullptr , new std::string("BOOL"));}
     | FLOAT_CONST {$$ = new ASTnode(nullptr , Data(TYPE::FLOAT , $1) , nullptr , new std::string("FLOAT"));}
     | STRING_CONST {$$ = new ASTnode(nullptr , Data(TYPE::STRING , $1) , nullptr , new std::string("STRING"));}
-    | func_call {$$ = $1;}
+    | func_call 
+      {
+           // Create a dummy node because func_call returns string* but expression needs ASTnode*
+           // and we need a valid type for expression manipulations
+           $$ = new ASTnode(nullptr, Data(TYPE::INT, 0), nullptr, $1);
+      }
     | ID DOT ID 
     {
         IdInfo *id_info = currentScope -> lookup(*$1);

@@ -1,0 +1,93 @@
+define class A{
+    define INT a;
+    define INT b;
+    define STR s;
+    define constr A() {
+        a = 10;
+        b = 20;
+        s = "hello";
+    }
+    define func INT f(INT $x) {
+
+        if x > 0 AND x < 10 then {
+            return x * 3 / 2 - 1;
+        }
+        if x > 10 then {
+            return x * 2 + 1;
+        }
+
+        if x > 11 OR (x>5 AND (b == 20 OR s == "hello")) then {
+            return x * 3 / 2 - 1;
+        }
+        if x > 10 AND (true OR false) then {
+            return x * 2 + 1;
+        }
+
+        return a + b + x;
+    }
+    define func STR g() {
+        return s;
+    }
+}
+
+define class Car{
+    define INT speed;
+    define INT distance;
+    define INT time;
+    define constr Car() {
+        define A a;
+        a <- A();
+        speed = 0;
+        distance = 0;
+        time = 0;
+    }
+    define func INT f(INT $x) {
+        return speed + distance + time;
+    }
+    define func INT g() {
+        return distance;
+    }
+}
+
+define BOOL t;
+define BOOL r;
+define BOOL x;
+define FLOAT l;
+define FLOAT dap;
+define FLOAT ppp;
+define INT poz;
+define INT dasda; 
+define STR e1;
+define STR e2;
+define Car c;
+define Car fulger;
+define A johny;
+main{
+    t = true;
+    r = false;
+    x = true;
+    l = -3.14;
+    dap = 2.71;
+    ppp = 1.41;
+    poz = -10;
+    dasda = 20;
+    e1 = "hello";
+    e2 = "world";
+    Print(c.speed + dasda);
+    c.speed = 10;
+    t = ((!(t!=true) AND l < 3.2) OR ((dasda >> 3) > 2) OR (r != false AND e1 == "hell"+ "o"));
+    Print(t);
+
+    dasda = ((dasda << 2) ^ (1 << 2) -  (poz ^ 3)) / dasda * c.speed - c.distance;
+    Print(dasda);
+
+    ppp = ppp * 3.1 + l - l/(1.2 * ppp);
+    Print(ppp);
+
+    Print(e1 + " salut " + " SPER SA MEARGA " + e2);
+
+    fulger.distance = (1 >> 3 + 23 ) ^ (3 * johny.a + 1) / (10/(johny.b+1));
+    Print(fulger.distance);
+    Print(fulger.speed);
+    Print(fulger.time);
+}
