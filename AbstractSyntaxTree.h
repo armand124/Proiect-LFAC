@@ -11,6 +11,7 @@ union value
     std::string *s;
     IdInfo *id;
     char c;
+    SymbolTable *obj;
 };
 
 struct Data 
@@ -24,6 +25,7 @@ struct Data
     Data(int type , std::string *x );
     Data(int type , IdInfo *x );
     Data(int type , char x );
+    Data(int type , SymbolTable *x );
 
     int get_int();
     float get_float();
@@ -31,6 +33,7 @@ struct Data
     std::string *get_string();
     IdInfo *get_id_info();
     char get_char();
+    SymbolTable *get_object();
 };
 
 class ASTnode
@@ -41,7 +44,7 @@ class ASTnode
         std::string *type;
     public:
         ASTnode(ASTnode *l , Data data , ASTnode *r , std::string *type) : l(l) , data(data) , r(r) , type(type) {}
-        Data evaluate();
+        Data evaluate(bool as_lvalue = false);
         std::string get_type();
         std::string *get_type_ptr();
 };

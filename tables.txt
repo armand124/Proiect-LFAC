@@ -1,11 +1,13 @@
 === Scope: Global (Global) ===
   Name: FileManager | Type: class | Category: class
   Name: f | Type: INT | Category: function | Params: (INT x, FLOAT y, INT z)
+  Name: fl | Type: FileManager | Category: variable
   Name: t | Type: INT | Category: variable
   Name: y | Type: BOOL | Category: variable
 ================================
 
 === Scope: FileManager (Parent: Global) ===
+  Name: constructor | Type: void | Category: function
   Name: filePath | Type: STRING | Category: field
   Name: maxFileSize | Type: INT | Category: field
   Name: openFile | Type: INT | Category: function | Params: (INT fileId)
@@ -16,6 +18,10 @@
   Name: fileId | Type: INT | Category: param
 ================================
 
+=== Scope: constructor (Parent: FileManager) ===
+  Name: s | Type: STRING | Category: variable
+================================
+
 === Scope: f (Parent: Global) ===
   Name: r | Type: FileManager | Category: variable
   Name: x | Type: INT | Category: param
@@ -24,5 +30,10 @@
 ================================
 
 === Scope: main (Parent: Global) ===
+================================
+
+=== Scope: FileManager (Parent: FileManager) ===
+  Name: filePath | Type: STRING | Category: field
+  Name: maxFileSize | Type: INT | Category: field
 ================================
 
